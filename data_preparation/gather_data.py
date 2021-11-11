@@ -1,6 +1,9 @@
 import tweepy 
 import json
 import csv
+#python3 -m venv nbattmap
+#source nbattmap/bin/activate
+#pip install -r requirements.txt
 consumer_key = 'MB6nEjXaf7SGnoODGrOPkfqKW'
 consumer_secret = 'cXKDXCnx8NmBkN2XKVDYdswXL9CYWpPdw48BAsf1NOFznfHKN6'
 bearer_token = 'AAAAAAAAAAAAAAAAAAAAAIqdVAEAAAAAbV6%2BKw11NqoCCKoaVIs9q7M07SQ%3DyOahpZv3b0bqqMK186y0XMPSTD1hjM4plBALNCLBEUgFE7JSh2'
