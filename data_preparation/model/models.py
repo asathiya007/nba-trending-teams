@@ -5,7 +5,6 @@ from sklearn.linear_model import LinearRegression
 from sklearn.metrics import f1_score, accuracy_score
 from sklearn.naive_bayes import MultinomialNB
 import time 
-from zipfile import ZipFile
 
 
 def _save_random_forest(random_forest): 
@@ -21,7 +20,7 @@ def _load_random_forest():
 
 def _fit_random_forest(x_train, x_test, y_train, y_test): 
     # fit random forest model 
-    random_forest = RandomForestClassifier(n_estimators=25, max_depth=750)
+    random_forest = RandomForestClassifier(n_estimators=10, max_depth=100)
     random_forest.fit(x_train, y_train)
 
     # evaluate random forest model 
@@ -165,20 +164,6 @@ def fit_models():
     print('Finished training random forest model')
     print('Total time for training random forest: ', end - start, 
         ' seconds\n')
-
-    # zip files 
-    file_names = [
-        './count_vectorizer.pkl', 
-        './tfidf_transformer.pkl', 
-        './naive_bayes.joblib',
-        './linear_regression.joblib', 
-        './random_forest.joblib'
-    ]
-    zip_file = ZipFile('./ml_resources.zip', 'w')
-    for file_name in file_names: 
-        zip_file.write(file_name)
-    zip_file.close()
-    print('Saved machine learning resources in ./ml_resources.zip\n')
 
 if __name__ == '__main__':
     fit_models()
