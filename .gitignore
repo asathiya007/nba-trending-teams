@@ -1,1 +1,12 @@
-./nbattmap
+# exclude development materials 
+nbattmap/
+__pycache__/
+.ipynb_checkpoints/ 
+*.ipynb 
+.DS_Store
+
+# exclude unzipped machine learning resources and datasets 
+ml_resources/
+*.csv
+*.pkl
+*.joblib 
