@@ -177,7 +177,7 @@ def transform_tweet(tweet):
     except: 
         nltk.download('stopwords')
         eng_stopwords = stopwords.words('english')
-    stemmer = _load_snowball_stemmer()
+    snowball_stemmer = _load_snowball_stemmer()
     count_vectorizer = _load_count_vectorizer()
     tfidf_transformer = _load_tfidf_transformer() 
 
@@ -185,7 +185,7 @@ def transform_tweet(tweet):
     tokens = _get_clean_tokens(tweet)
     new_tokens = []
     for token in tokens: 
-        new_tokens.append(stemmer.stem(token)) 
+        new_tokens.append(snowball_stemmer.stem(token)) 
     tokens = new_tokens 
     tokens = list(filter(lambda token: token not in eng_stopwords, tokens))
 
