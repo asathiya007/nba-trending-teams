@@ -23,52 +23,67 @@ def _get_data():
     
     # return dataset 
     return dataset 
+
+def _get_clean_tokens(tweet): 
+    # tokenize tweet 
+    tokens = tweet.split() 
+
+    # clean each token 
+    clean_tokens =[]
+    for token in tokens: 
+        token = token.strip() 
+
+        # remove mentions and media
+        if len(token) == 0 or token[0] == '@' or '://' in token: 
+            continue
+        extensions = ['.com', '.org', '.net']
+        extension_found = False
+        for extension in extensions: 
+            if extension in token: 
+                extension_found = True 
+        if extension_found: 
+            continue 
+
+        # remove non-alphaneumeric characters
+        regex = re.compile('[^a-zA-Z0-9]')
+        token = regex.sub('', token)
+
+        # record cleaned token
+        if len(token) != 0: 
+            clean_tokens.append(token)
+
+    # return list of clean tokens 
+    return clean_tokens
     
 def _tokenize_tweets(dataset): 
-    # function to get clean tokens of a tweet
-    def get_clean_tokens(tweet): 
-        # tokenize tweet 
-        tokens = tweet.split() 
-
-        # clean each token 
-        clean_tokens =[]
-        for token in tokens: 
-            token = token.strip() 
-
-            # remove mentions and media
-            if len(token) == 0 or token[0] == '@' or '://' in token: 
-                continue
-            extensions = ['.com', '.org', '.net']
-            extension_found = False
-            for extension in extensions: 
-                if extension in token: 
-                    extension_found = True 
-            if extension_found: 
-                continue 
-
-            # remove non-alphaneumeric characters
-            regex = re.compile('[^a-zA-Z0-9]')
-            token = regex.sub('', token)
-
-            # record cleaned token
-            if len(token) != 0: 
-                clean_tokens.append(token)
-
-        # return list of clean tokens 
-        return clean_tokens
-
     # get clean tokens of tweet
     dataset['tweet'] = dataset['tweet'].apply(
-        lambda tweet: get_clean_tokens(tweet))
+        lambda tweet: _get_clean_tokens(tweet))
     
     # return dataset 
     return dataset 
+
+def _save_snowball_stemmer(snowball_stemmer):
+    # save snowball stemmer
+    with open('./snowball_stemmer.pkl', 'wb') as f: 
+        pickle.dump(snowball_stemmer, f) 
+
+def _load_snowball_stemmer():
+    # load snowball stemmer 
+    with open('./snowball_stemmer.pkl', 'rb') as f: 
+        snowball_stemmer = pickle.load(f)
+    
+    # return snowball stemmer 
+    return snowball_stemmer 
 
 def _normalize_tweets(dataset): 
     # normalize tweet text using stemming 
     stemmer = SnowballStemmer('english')
     dataset['tweet'] = dataset['tweet'].apply(lambda tokens: 
         [stemmer.stem(token) for token in tokens])
+
+    # save stemmer 
+    _save_snowball_stemmer(stemmer)
     
     # return dataset 
     return dataset
@@ -156,9 +171,23 @@ def process_data(holdout=0.2):
     return x_train, x_test, y_train, y_test
 
 def transform_tweet(tweet): 
-    # load count vectorizer and tfidf transformers 
+    # load stemmer, vectorizers and stopwords 
+    try: 
+        eng_stopwords = stopwords.words('english')
+    except: 
+        nltk.download('stopwords')
+        eng_stopwords = stopwords.words('english')
+    stemmer = _load_snowball_stemmer()
     count_vectorizer = _load_count_vectorizer()
     tfidf_transformer = _load_tfidf_transformer() 
+
+    # preprocess tweet 
+    tokens = _get_clean_tokens(tweet)
+    new_tokens = []
+    for token in tokens: 
+        new_tokens.append(stemmer.stem(token)) 
+    tokens = new_tokens 
+    tokens = list(filter(lambda token: token not in eng_stopwords, tokens))
 
     # transform tweet 
     tweet_counts = count_vectorizer.transform(pd.DataFrame([tweet])[0])
