@@ -9,15 +9,16 @@ for index, d in df.iterrows():
     if d["Team"] not in dict_teams:
         dict_teams[d["Team"]] = [1, [d["Tweet"]]]
     else:
-        if dict_teams[d["Team"]][0] < 34:
+        if dict_teams[d["Team"]][0] < 40:
             dict_teams[d["Team"]][0] += 1
             dict_teams[d["Team"]][1].append(d["Tweet"])
         else: 
             continue
-
+# for d in dict_teams:
+#     print(dict_teams[d][0])
 dictt = []
 for a in dict_teams:
-    for i in range(34):
+    for i in range(40):
         dictt.append({"team": a, "tweet": dict_teams[a][1][i]})
 
 csv_columns = ['team', 'tweet']
