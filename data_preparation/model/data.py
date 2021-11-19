@@ -24,7 +24,7 @@ def _get_data():
     # return dataset 
     return dataset 
 
-def _get_clean_tokens(tweet): 
+def get_clean_tokens(tweet): 
     # tokenize tweet 
     tokens = tweet.split() 
 
@@ -58,7 +58,7 @@ def _get_clean_tokens(tweet):
 def _tokenize_tweets(dataset): 
     # get clean tokens of tweet
     dataset['tweet'] = dataset['tweet'].apply(
-        lambda tweet: _get_clean_tokens(tweet))
+        lambda tweet: get_clean_tokens(tweet))
     
     # return dataset 
     return dataset 
@@ -68,7 +68,7 @@ def _save_snowball_stemmer(snowball_stemmer):
     with open('./snowball_stemmer.pkl', 'wb') as f: 
         pickle.dump(snowball_stemmer, f) 
 
-def _load_snowball_stemmer():
+def load_snowball_stemmer():
     # load snowball stemmer 
     with open('./snowball_stemmer.pkl', 'rb') as f: 
         snowball_stemmer = pickle.load(f)
@@ -118,7 +118,7 @@ def _save_count_vectorizer(count_vectorizer):
     with open('./count_vectorizer.pkl', 'wb') as f: 
         pickle.dump(count_vectorizer, f)
 
-def _load_count_vectorizer(): 
+def load_count_vectorizer(): 
     # load count vectorizer 
     with open('./count_vectorizer.pkl', 'rb') as f: 
         count_vectorizer = pickle.load(f)
@@ -131,7 +131,7 @@ def _save_tfidf_transformer(tfidf_transformer):
     with open('./tfidf_transformer.pkl', 'wb') as f: 
         pickle.dump(tfidf_transformer, f)
 
-def _load_tfidf_transformer(): 
+def load_tfidf_transformer(): 
     # load count vectorizer 
     with open('./tfidf_transformer.pkl', 'rb') as f: 
         tfidf_transformer = pickle.load(f)
@@ -177,12 +177,12 @@ def transform_tweet(tweet):
     except: 
         nltk.download('stopwords')
         eng_stopwords = stopwords.words('english')
-    snowball_stemmer = _load_snowball_stemmer()
-    count_vectorizer = _load_count_vectorizer()
-    tfidf_transformer = _load_tfidf_transformer() 
+    snowball_stemmer = load_snowball_stemmer()
+    count_vectorizer = load_count_vectorizer()
+    tfidf_transformer = load_tfidf_transformer() 
 
     # preprocess tweet 
-    tokens = _get_clean_tokens(tweet)
+    tokens = get_clean_tokens(tweet)
     new_tokens = []
     for token in tokens: 
         new_tokens.append(snowball_stemmer.stem(token)) 

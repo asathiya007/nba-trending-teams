@@ -10,3 +10,4 @@ ml_resources/
 *.csv
 *.pkl
 *.joblib 
+logs.txt

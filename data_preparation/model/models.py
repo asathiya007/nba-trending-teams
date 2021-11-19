@@ -1,7 +1,7 @@
 from data import process_data, transform_tweet
 import joblib 
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.linear_model import LinearRegression
+from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import f1_score, accuracy_score
 from sklearn.naive_bayes import MultinomialNB
 import time 
@@ -11,7 +11,7 @@ def _save_random_forest(random_forest):
     # save random forest model 
     joblib.dump(random_forest, './random_forest.joblib')
 
-def _load_random_forest(): 
+def load_random_forest(): 
     # load random forest model 
     random_forest = joblib.load('./random_forest.joblib')
 
@@ -38,7 +38,7 @@ def predict_random_forest(tweet):
     tweet = transform_tweet(tweet)
 
     # load random forest model 
-    random_forest = _load_random_forest()
+    random_forest = load_random_forest()
 
     # predict sentiment of tweet 
     pred = random_forest.predict_proba(tweet)
@@ -50,7 +50,7 @@ def _save_naive_bayes(naive_bayes):
     # save naive Bayes model 
     joblib.dump(naive_bayes, './naive_bayes.joblib')
 
-def _load_naive_bayes(): 
+def load_naive_bayes(): 
     # load naive Bayes model 
     naive_bayes = joblib.load('./naive_bayes.joblib')
 
@@ -77,7 +77,7 @@ def predict_naive_bayes(tweet):
     tweet = transform_tweet(tweet)
 
     # load naive Bayes model 
-    naive_bayes = _load_naive_bayes()
+    naive_bayes = load_naive_bayes()
 
     # predict sentiment of tweet 
     pred = naive_bayes.predict_proba(tweet)
@@ -85,46 +85,41 @@ def predict_naive_bayes(tweet):
     # return prediction 
     return pred[0]
 
-def _save_linear_regression(linear_regression): 
-    # save linear regression model 
-    joblib.dump(linear_regression, './linear_regression.joblib')
+def _save_logistic_regression(logistic_regression): 
+    # save logistic regression model 
+    joblib.dump(logistic_regression, './logistic_regression.joblib')
 
-def _load_linear_regression(): 
-    # load linear regression model 
-    linear_regression = joblib.load('./linear_regression.joblib')
+def load_logistic_regression(): 
+    # load logistic regression model 
+    logistic_regression = joblib.load('./logistic_regression.joblib')
 
     # return loaded model 
-    return linear_regression 
+    return logistic_regression 
 
-def _fit_linear_regression(x_train, x_test, y_train, y_test): 
-    # fit linear regression model 
-    linear_regression = LinearRegression()
-    linear_regression.fit(x_train, y_train)
+def _fit_logistic_regression(x_train, x_test, y_train, y_test): 
+    # fit logistic regression model 
+    logistic_regression = LogisticRegression(max_iter=150)
+    logistic_regression.fit(x_train, y_train)
 
-    # evaluate linear regression model 
-    preds = linear_regression.predict(x_test)
-    for i in range(len(preds)):
-        if preds[i] >= 0.5: 
-            preds[i] = 1
-        else: 
-            preds[i] = 0
+    # evaluate logistic regression model 
+    preds = logistic_regression.predict(x_test)
     f1 = f1_score(y_test, preds) 
-    print('Linear regression F1 score: ', f1)
+    print('logistic regression F1 score: ', f1)
     accuracy = accuracy_score(y_test, preds)
-    print('Linear regression accuracy: ', accuracy)
+    print('logistic regression accuracy: ', accuracy)
 
-    # save linear regression model 
-    _save_linear_regression(linear_regression)
+    # save logistic regression model 
+    _save_logistic_regression(logistic_regression)
 
-def predict_linear_regression(tweet): 
+def predict_logistic_regression(tweet): 
     # transform tweet 
     tweet = transform_tweet(tweet)
 
-    # load linear regression model 
-    linear_regression = _load_linear_regression()
+    # load logistic regression model 
+    logistic_regression = load_logistic_regression()
 
     # predict sentiment of tweet 
-    pred = linear_regression.predict(tweet)      
+    pred = logistic_regression.predict_proba(tweet)      
 
     # return prediction 
     return pred[0]
@@ -147,13 +142,13 @@ def fit_models():
     print('Total time for training naive Bayes model: ', end - start, 
         ' seconds\n')
 
-    # fit linear regression
-    print('Started training linear regression model')
+    # fit logistic regression
+    print('Started training logistic regression model')
     start = time.time()
-    _fit_linear_regression(x_train, x_test, y_train, y_test)
+    _fit_logistic_regression(x_train, x_test, y_train, y_test)
     end = time.time()
-    print('Finished training linear regression model')
-    print('Total time for training linear_regression: ', end - start, 
+    print('Finished training logistic regression model')
+    print('Total time for training logistic regression model: ', end - start, 
         ' seconds\n')
 
     # fit random forest 
