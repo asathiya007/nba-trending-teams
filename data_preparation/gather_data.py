@@ -14,7 +14,7 @@ client = tweepy.Client(bearer_token, consumer_key, consumer_secret, access_token
     access_token_secret, wait_on_rate_limit=True)
 # state_acronym = ["AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DC", "DE", "FL", "GA", "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD", "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ", "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC", "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY"]
 # state_name =["Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado", "Connecticut", "Delaware", "Florida", "Georgia", "Hawaii", "Idaho", "Illinois", "Indiana", "Iowa", "Kansas", "Kentucky", "Louisiana", "Maine", "Maryland", "Massachusetts", "Michigan", "Minnesota", "Mississippi", "Missouri", "Montana", "Nebraska", "Nevada", "New Hampshire", "New Jersey", "New Mexico", "New York", "North Carolina", "North Dakota", "Ohio", "Oklahoma", "Oregon", "Pennsylvania", "Rhode Island", "South Carolina", "South Dakota", "Tennessee", "Texas", "Utah", "Vermont", "Virginia", "Washington", "West Virginia", "Wisconsin", "Wyoming"]
-all_teams = ["celtics", "nets", "knicks", "76ers", "raptors", "bulls", "cavaliers", "pistons", "pacers", "bucks", "hawks", "hornets", "heat", "magic", "wizards", "nuggets", "timberwolves", "thunder", "blazers", "jazz", "lakers", "suns", "kings", "mavericks", "rockets", "grizzlies", "pelicans", "spurs", "warriors", "clippers"]
+all_teams = ["celtics", "nets", "knicks", "76ers", "raptors", "bulls", "cavaliers", "pistons", "pacers", "bucks", "hawks", "hornets", "heat", "magic", "wizards", "nuggets", "timberwolves", "thunder", "blazers", "jazz", "lakers", "suns", "kings", "mavericks", "rockets", "grizzlies", "pelicans", "spurs", "warriors", "clippers"] #["warriors", "clippers"]#
 final_data = []
         
 # count = 0
@@ -24,6 +24,7 @@ for team in all_teams:
     expansions = 'author_id'
     user_fields = 'location'
     #tweet.fields=created_at
+    # end_time = "2021-11-13T23:46Zs" end_time = end_time,
     tweets = client.search_recent_tweets(query=query, max_results=max_results, 
         expansions=expansions, user_fields=user_fields, tweet_fields='created_at')
     # print(tweets)
