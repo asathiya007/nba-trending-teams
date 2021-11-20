@@ -1,7 +1,9 @@
+from re import L
 import nltk
 from nltk.corpus import stopwords
+from nltk.stem.snowball import SnowballStemmer
 import pandas as pd
-from data import load_count_vectorizer, load_snowball_stemmer, load_tfidf_transformer, get_clean_tokens
+from data import load_count_vectorizer, load_tfidf_transformer, get_clean_tokens
 from models import load_logistic_regression, load_naive_bayes, load_random_forest
 import time 
 
@@ -19,7 +21,7 @@ lr_predictions_pos = []
 lr_predictions_neg = []
 
 # load stemmer and vectorizers 
-snowball_stemmer = load_snowball_stemmer()
+snowball_stemmer = SnowballStemmer(language='english')
 count_vectorizer = load_count_vectorizer()
 tfidf_transformer = load_tfidf_transformer() 
 naive_bayes = load_naive_bayes() 

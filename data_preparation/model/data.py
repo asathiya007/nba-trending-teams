@@ -63,27 +63,11 @@ def _tokenize_tweets(dataset):
     # return dataset 
     return dataset 
 
-def _save_snowball_stemmer(snowball_stemmer):
-    # save snowball stemmer
-    with open('./snowball_stemmer.pkl', 'wb') as f: 
-        pickle.dump(snowball_stemmer, f) 
-
-def load_snowball_stemmer():
-    # load snowball stemmer 
-    with open('./snowball_stemmer.pkl', 'rb') as f: 
-        snowball_stemmer = pickle.load(f)
-    
-    # return snowball stemmer 
-    return snowball_stemmer 
-
 def _normalize_tweets(dataset): 
     # normalize tweet text using stemming 
     stemmer = SnowballStemmer('english')
     dataset['tweet'] = dataset['tweet'].apply(lambda tokens: 
         [stemmer.stem(token) for token in tokens])
-
-    # save stemmer 
-    _save_snowball_stemmer(stemmer)
     
     # return dataset 
     return dataset
@@ -177,7 +161,7 @@ def transform_tweet(tweet):
     except: 
         nltk.download('stopwords')
         eng_stopwords = stopwords.words('english')
-    snowball_stemmer = load_snowball_stemmer()
+    snowball_stemmer = SnowballStemmer(language='english')
     count_vectorizer = load_count_vectorizer()
     tfidf_transformer = load_tfidf_transformer() 
 

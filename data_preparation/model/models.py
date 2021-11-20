@@ -18,7 +18,7 @@ def load_random_forest():
     # return loaded model 
     return random_forest 
 
-def _fit_random_forest(x_train, x_test, y_train, y_test): 
+def fit_random_forest(x_train, x_test, y_train, y_test): 
     # fit random forest model 
     random_forest = RandomForestClassifier(n_estimators=10, max_depth=100)
     random_forest.fit(x_train, y_train)
@@ -26,12 +26,13 @@ def _fit_random_forest(x_train, x_test, y_train, y_test):
     # evaluate random forest model 
     preds = random_forest.predict(x_test)
     f1 = f1_score(y_test, preds) 
-    print('Random forest F1 score: ', f1)
     accuracy = accuracy_score(y_test, preds)
-    print('Random forest accuracy: ', accuracy)
 
     # save random forest model 
     _save_random_forest(random_forest)
+
+    # return model results 
+    return random_forest, f1, accuracy
 
 def predict_random_forest(tweet): 
     # transform tweet 
@@ -57,7 +58,7 @@ def load_naive_bayes():
     # return loaded model 
     return naive_bayes 
 
-def _fit_naive_bayes(x_train, x_test, y_train, y_test): 
+def fit_naive_bayes(x_train, x_test, y_train, y_test): 
     # fit naive Bayes model 
     naive_bayes = MultinomialNB() 
     naive_bayes.fit(x_train, y_train)
@@ -65,12 +66,13 @@ def _fit_naive_bayes(x_train, x_test, y_train, y_test):
     # evaluate naive Bayes model 
     preds = naive_bayes.predict(x_test)
     f1 = f1_score(y_test, preds) 
-    print('Naive Bayes F1 score: ', f1)
     accuracy = accuracy_score(y_test, preds)
-    print('Naive Bayes accuracy: ', accuracy)
 
     # save naive Bayes model 
     _save_naive_bayes(naive_bayes)
+
+    # return model results 
+    return naive_bayes, f1, accuracy
 
 def predict_naive_bayes(tweet): 
     # transform tweet 
@@ -96,7 +98,7 @@ def load_logistic_regression():
     # return loaded model 
     return logistic_regression 
 
-def _fit_logistic_regression(x_train, x_test, y_train, y_test): 
+def fit_logistic_regression(x_train, x_test, y_train, y_test): 
     # fit logistic regression model 
     logistic_regression = LogisticRegression(max_iter=150)
     logistic_regression.fit(x_train, y_train)
@@ -104,12 +106,13 @@ def _fit_logistic_regression(x_train, x_test, y_train, y_test):
     # evaluate logistic regression model 
     preds = logistic_regression.predict(x_test)
     f1 = f1_score(y_test, preds) 
-    print('logistic regression F1 score: ', f1)
     accuracy = accuracy_score(y_test, preds)
-    print('logistic regression accuracy: ', accuracy)
 
     # save logistic regression model 
     _save_logistic_regression(logistic_regression)
+
+    # return model results 
+    return logistic_regression, f1, accuracy
 
 def predict_logistic_regression(tweet): 
     # transform tweet 
@@ -136,8 +139,10 @@ def fit_models():
     # fit naive Bayes
     print('Started training naive Bayes model')
     start = time.time()
-    _fit_naive_bayes(x_train, x_test, y_train, y_test)
+    _, f1, accuracy = fit_naive_bayes(x_train, x_test, y_train, y_test)
     end = time.time()
+    print('Naive Bayes F1 score: ', f1)
+    print('Naive Bayes accuracy: ', accuracy)
     print('Finished training naive Bayes model')
     print('Total time for training naive Bayes model: ', end - start, 
         ' seconds\n')
@@ -145,8 +150,10 @@ def fit_models():
     # fit logistic regression
     print('Started training logistic regression model')
     start = time.time()
-    _fit_logistic_regression(x_train, x_test, y_train, y_test)
+    _, f1, accuracy = fit_logistic_regression(x_train, x_test, y_train, y_test)
     end = time.time()
+    print('Logistic regression F1 score: ', f1)
+    print('Logistic regression accuracy: ', accuracy)
     print('Finished training logistic regression model')
     print('Total time for training logistic regression model: ', end - start, 
         ' seconds\n')
@@ -154,8 +161,10 @@ def fit_models():
     # fit random forest 
     print('Started training random forest model')
     start = time.time()
-    _fit_random_forest(x_train, x_test, y_train, y_test)
+    _, f1, accuracy = fit_random_forest(x_train, x_test, y_train, y_test)
     end = time.time()
+    print('Random forest F1 score: ', f1)
+    print('Random forest accuracy: ', accuracy)
     print('Finished training random forest model')
     print('Total time for training random forest: ', end - start, 
         ' seconds\n')
