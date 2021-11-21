@@ -1,9 +1,15 @@
-from data import process_data, transform_tweet
+from data import (process_data, transform_tweet, 
+    load_count_vectorizer, load_tfidf_transformer, get_clean_tokens)
 import joblib 
+import nltk
+from nltk.corpus import stopwords
+from nltk.stem.snowball import SnowballStemmer
+import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import f1_score, accuracy_score
 from sklearn.naive_bayes import MultinomialNB
+import statistics 
 import time 
 
 
@@ -47,6 +53,50 @@ def predict_random_forest(tweet):
     # return prediction 
     return pred[0]
 
+def predict_multiple_random_forest(tweets, prob=False):
+    # load stemmer, vectorizers, and model
+    snowball_stemmer = SnowballStemmer(language='english')
+    count_vectorizer = load_count_vectorizer()
+    tfidf_transformer = load_tfidf_transformer() 
+    random_forest = load_random_forest() 
+
+    # make predictions
+    preds = [] 
+    pred_times = [] 
+    for tweet in tweets: 
+        start = time.time() 
+        # transform tweet
+        try: 
+            eng_stopwords = stopwords.words('english')
+        except: 
+            nltk.download('stopwords')
+            eng_stopwords = stopwords.words('english')
+        tokens = get_clean_tokens(tweet)
+        new_tokens = []
+        for token in tokens: 
+            new_tokens.append(snowball_stemmer.stem(token)) 
+        tokens = new_tokens 
+        tokens = list(filter(lambda token: token not in eng_stopwords, tokens))
+        tweet_counts = count_vectorizer.transform(pd.DataFrame([tweet])[0])
+        tweet_tfidf = tfidf_transformer.transform(tweet_counts)
+
+        # make prediction on tweet 
+        if prob: 
+            preds.append(random_forest.predict_proba(tweet_tfidf)[0])
+        else: 
+            preds.append(random_forest.predict(tweet_tfidf)[0])
+        end = time.time() 
+        pred_times.append(end - start)
+
+    # return predictions and stats
+    mean = statistics.mean(pred_times)
+    median = statistics.median(pred_times)
+    range = max(pred_times) - min(pred_times)
+    variance = statistics.variance(pred_times)
+    stdev = statistics.stdev(pred_times)
+    stats = [mean, median, range, variance, stdev]
+    return preds, stats
+
 def _save_naive_bayes(naive_bayes): 
     # save naive Bayes model 
     joblib.dump(naive_bayes, './naive_bayes.joblib')
@@ -87,6 +137,50 @@ def predict_naive_bayes(tweet):
     # return prediction 
     return pred[0]
 
+def predict_multiple_naive_bayes(tweets, prob=False):
+    # load stemmer, vectorizers, and model
+    snowball_stemmer = SnowballStemmer(language='english')
+    count_vectorizer = load_count_vectorizer()
+    tfidf_transformer = load_tfidf_transformer() 
+    naive_bayes = load_naive_bayes() 
+
+    # make predictions
+    preds = [] 
+    pred_times = []
+    for tweet in tweets: 
+        # transform tweet
+        start = time.time() 
+        try: 
+            eng_stopwords = stopwords.words('english')
+        except: 
+            nltk.download('stopwords')
+            eng_stopwords = stopwords.words('english')
+        tokens = get_clean_tokens(tweet)
+        new_tokens = []
+        for token in tokens: 
+            new_tokens.append(snowball_stemmer.stem(token)) 
+        tokens = new_tokens 
+        tokens = list(filter(lambda token: token not in eng_stopwords, tokens))
+        tweet_counts = count_vectorizer.transform(pd.DataFrame([tweet])[0])
+        tweet_tfidf = tfidf_transformer.transform(tweet_counts)
+
+        # make prediction on tweet 
+        if prob: 
+            preds.append(naive_bayes.predict_proba(tweet_tfidf)[0])
+        else: 
+            preds.append(naive_bayes.predict(tweet_tfidf)[0])
+        end = time.time() 
+        pred_times.append(end - start)
+
+    # return predictions and stats
+    mean = statistics.mean(pred_times)
+    median = statistics.median(pred_times)
+    range = max(pred_times) - min(pred_times)
+    variance = statistics.variance(pred_times)
+    stdev = statistics.stdev(pred_times)
+    stats = [mean, median, range, variance, stdev]
+    return preds, stats
+
 def _save_logistic_regression(logistic_regression): 
     # save logistic regression model 
     joblib.dump(logistic_regression, './logistic_regression.joblib')
@@ -126,6 +220,50 @@ def predict_logistic_regression(tweet):
 
     # return prediction 
     return pred[0]
+
+def predict_multiple_logistic_regression(tweets, prob=False):
+    # load stemmer, vectorizers, and model
+    snowball_stemmer = SnowballStemmer(language='english')
+    count_vectorizer = load_count_vectorizer()
+    tfidf_transformer = load_tfidf_transformer() 
+    logistic_regression = load_logistic_regression() 
+
+    # make predictions
+    preds = [] 
+    pred_times = []
+    for tweet in tweets: 
+        # transform tweet
+        start = time.time() 
+        try: 
+            eng_stopwords = stopwords.words('english')
+        except: 
+            nltk.download('stopwords')
+            eng_stopwords = stopwords.words('english')
+        tokens = get_clean_tokens(tweet)
+        new_tokens = []
+        for token in tokens: 
+            new_tokens.append(snowball_stemmer.stem(token)) 
+        tokens = new_tokens 
+        tokens = list(filter(lambda token: token not in eng_stopwords, tokens))
+        tweet_counts = count_vectorizer.transform(pd.DataFrame([tweet])[0])
+        tweet_tfidf = tfidf_transformer.transform(tweet_counts)
+
+        # make prediction on tweet 
+        if prob: 
+            preds.append(logistic_regression.predict_proba(tweet_tfidf)[0])
+        else: 
+            preds.append(logistic_regression.predict(tweet_tfidf)[0])
+        end = time.time() 
+        pred_times.append(end - start)
+
+    # return predictions and stats
+    mean = statistics.mean(pred_times)
+    median = statistics.median(pred_times)
+    range = max(pred_times) - min(pred_times)
+    variance = statistics.variance(pred_times)
+    stdev = statistics.stdev(pred_times)
+    stats = [mean, median, range, variance, stdev]
+    return preds, stats
 
 def fit_models():
     # process data 
@@ -168,6 +306,7 @@ def fit_models():
     print('Finished training random forest model')
     print('Total time for training random forest: ', end - start, 
         ' seconds\n')
+
 
 if __name__ == '__main__':
     fit_models()
