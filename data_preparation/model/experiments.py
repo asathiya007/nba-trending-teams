@@ -12,8 +12,8 @@ import time
 
 # define constants
 ITERATIONS = 5
-        
-     
+
+
 def test_data_processing_model_fitting(): 
     # initialize lists 
     data_processing_times = [] 
@@ -86,16 +86,16 @@ def test_data_processing_model_fitting():
 
     # save result as CSV 
     index = [
-        'data processing time',
-        'logistic regression fit time', 
+        'data processing time (s)',
+        'logistic regression fit time (s)', 
         'logistic regression f1',
         'logistic regression accuracy',
-        'naive Bayes fit time', 
+        'naive Bayes fit time (s)', 
         'naive Bayes f1',
         'naive Bayes accuracy',
-        'random forest fit time', 
+        'random forest fit time (s)', 
         'random forest f1',
-        'random forest accuracy',
+        'random forest accuracy'
     ]
     columns = ['iteration_' + str(i + 1) for i in range(ITERATIONS)] + [
         'mean', 'median', 'range', 'variance', 'stdev']
@@ -167,14 +167,19 @@ def test_load_times():
     random_forest_load_times += [mean, median, rng, variance, stdev]
     
     # save result as CSV 
-    index = ['vectorizers load time', 'logistic regression load time', 'naive Bayes load time', 
-        'random forest load time']
+    index = [
+        'vectorizers load time (s)', 
+        'logistic regression load time (s)', 
+        'naive Bayes load time (s)', 
+        'random forest load time (s)'
+    ]
     columns = ['iteration_' + str(i + 1) for i in range(ITERATIONS)] + [
         'mean', 'median', 'range', 'variance', 'stdev']
     data = [vectorizer_load_times, logistic_regression_load_times, 
         naive_bayes_load_times, random_forest_load_times]
     load_times = pd.DataFrame(data, index, columns)
     load_times.to_csv('./load_times.csv')
+
 
 if __name__=='__main__':
     # run experiments
