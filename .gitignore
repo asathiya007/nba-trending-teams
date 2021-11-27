@@ -5,6 +5,7 @@ __pycache__/
 *.ipynb 
 .DS_Store
 .vscode/
+
 # exclude unzipped machine learning resources and datasets 
 ml_resources/
 sentiment140dataset.csv

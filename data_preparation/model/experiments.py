@@ -1,20 +1,22 @@
 # import modules 
-from numpy.core.fromnumeric import mean
 from data import (load_count_vectorizer, load_tfidf_transformer, 
     process_data)
 from models import (load_logistic_regression, load_naive_bayes, 
     load_random_forest, fit_logistic_regression, fit_naive_bayes, 
-    fit_random_forest)
+    fit_random_forest, predict_multiple_logistic_regression, 
+    predict_multiple_naive_bayes, predict_multiple_random_forest)
 import pandas as pd
+from sklearn.metrics import accuracy_score, f1_score
+from nltk.stem.snowball import SnowballStemmer
 import statistics
 import time
 
 
 # define constants
 ITERATIONS = 5
-        
-     
-def test_data_processing_model_fitting(): 
+
+
+def test_data_processing_model_fitting(holdout): 
     # initialize lists 
     data_processing_times = [] 
     logistic_regression_fit_times = [] 
@@ -33,7 +35,7 @@ def test_data_processing_model_fitting():
 
         # process data 
         start = time.time()
-        x_train, x_test, y_train, y_test = process_data() 
+        x_train, x_test, y_train, y_test = process_data(holdout) 
         end = time.time()
         data_processing_times.append(end - start)
 
@@ -86,39 +88,41 @@ def test_data_processing_model_fitting():
 
     # save result as CSV 
     index = [
-        'data processing time',
-        'logistic regression fit time', 
+        'data processing time (s)',
+        'logistic regression fit time (s)', 
         'logistic regression f1',
         'logistic regression accuracy',
-        'naive Bayes fit time', 
+        'naive Bayes fit time (s)', 
         'naive Bayes f1',
         'naive Bayes accuracy',
-        'random forest fit time', 
+        'random forest fit time (s)', 
         'random forest f1',
-        'random forest accuracy',
+        'random forest accuracy'
     ]
     columns = ['iteration_' + str(i + 1) for i in range(ITERATIONS)] + [
         'mean', 'median', 'range', 'variance', 'stdev']
     data_processing_model_fitting = pd.DataFrame(data, index, columns)
-    data_processing_model_fitting.to_csv('./data_processing_model_fitting.csv')
+    data_processing_model_fitting.to_csv(
+        f'./data_processing_model_fitting_holdout={holdout}.csv')
 
-
-def test_load_times():
+def test_load_times(holdout):
     # test load times for vectorizers
-    print('Testing load time for vectorizers')
-    vectorizer_load_times = [] 
+    print('Testing load time for stemmer and vectorizers')
+    stemmer_vectorizer_load_times = [] 
     for _ in range(ITERATIONS):
         start = time.time() 
+        _ = SnowballStemmer(language='english')
         _ = load_count_vectorizer() 
         _ = load_tfidf_transformer()
         end = time.time() 
-        vectorizer_load_times.append(end - start)
-    mean = statistics.mean(vectorizer_load_times)
-    median = statistics.median(vectorizer_load_times)
-    rng = max(vectorizer_load_times) - min(vectorizer_load_times)
-    variance = statistics.variance(vectorizer_load_times)
-    stdev = statistics.stdev(vectorizer_load_times)
-    vectorizer_load_times += [mean, median, rng, variance, stdev]
+        stemmer_vectorizer_load_times.append(end - start)
+    mean = statistics.mean(stemmer_vectorizer_load_times)
+    median = statistics.median(stemmer_vectorizer_load_times)
+    rng = max(stemmer_vectorizer_load_times) - min(
+        stemmer_vectorizer_load_times)
+    variance = statistics.variance(stemmer_vectorizer_load_times)
+    stdev = statistics.stdev(stemmer_vectorizer_load_times)
+    stemmer_vectorizer_load_times += [mean, median, rng, variance, stdev]
     
     # test load times for logistic regression model 
     print('Testing load time for logistic regression model')
@@ -167,16 +171,68 @@ def test_load_times():
     random_forest_load_times += [mean, median, rng, variance, stdev]
     
     # save result as CSV 
-    index = ['vectorizers load time', 'logistic regression load time', 'naive Bayes load time', 
-        'random forest load time']
+    index = [
+        'stemmer and vectorizers load time (s)', 
+        'logistic regression load time (s)', 
+        'naive Bayes load time (s)', 
+        'random forest load time (s)'
+    ]
     columns = ['iteration_' + str(i + 1) for i in range(ITERATIONS)] + [
         'mean', 'median', 'range', 'variance', 'stdev']
-    data = [vectorizer_load_times, logistic_regression_load_times, 
+    data = [stemmer_vectorizer_load_times, logistic_regression_load_times, 
         naive_bayes_load_times, random_forest_load_times]
     load_times = pd.DataFrame(data, index, columns)
-    load_times.to_csv('./load_times.csv')
+    load_times.to_csv(f'./load_times_holdout={holdout}.csv')
+
+def test_predictions_NBA_tweets(holdout): 
+    # load data from csv file 
+    nba_tweets = pd.read_csv('../labeled_partitioned.csv')
+    tweets = nba_tweets['tweet']
+    labels = nba_tweets['label']
+
+    # make predictions with logistic regression model 
+    preds, stats = predict_multiple_logistic_regression(tweets)
+    accuracy = accuracy_score(labels, preds)
+    f1 = f1_score(labels, preds)
+    logistic_regression_stats = [accuracy, f1] + stats
+
+    # make predictions with naive Bayes model 
+    preds, stats = predict_multiple_naive_bayes(tweets)
+    accuracy = accuracy_score(labels, preds)
+    f1 = f1_score(labels, preds)
+    naive_bayes_stats = [accuracy, f1] + stats
+
+    # make predictions with random forest model 
+    preds, stats = predict_multiple_random_forest(tweets)
+    accuracy = accuracy_score(labels, preds)
+    f1 = f1_score(labels, preds)
+    random_forest_stats = [accuracy, f1] + stats
+
+    # save result as CSV 
+    index = [
+        'logistic regression', 
+        'naive Bayes', 
+        'random forest'
+    ]
+    columns = [
+        'accuracy',
+        'f1',
+        'mean_prediction_time', 
+        'median_prediction_time', 
+        'range_prediction_time', 
+        'variance_prediction_time', 
+        'stdev_prediction_time'
+    ]
+    data = [logistic_regression_stats, naive_bayes_stats, 
+        random_forest_stats]
+    load_times = pd.DataFrame(data, index, columns)
+    load_times.to_csv(f'./prediction_stats_holdout={holdout}.csv')
+
 
 if __name__=='__main__':
     # run experiments
-    test_data_processing_model_fitting() 
-    test_load_times()
+    holdouts = [0.2, 0.3, 0.4]
+    for holdout in holdouts: 
+        test_data_processing_model_fitting(holdout)
+        test_load_times(holdout)
+        test_predictions_NBA_tweets(holdout)
