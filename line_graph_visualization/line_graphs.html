@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<head>
+    <!-- add title -->
+    <title>Public Opinion of NBA Teams Based on Tweets</title>
+    <!-- import required libraries here -->
+    <script type="text/javascript" src="../lib/d3.v5.min.js"></script>
+    <script type="text/javascript" src="../lib/d3-dsv.min.js"></script>
+    <script type="text/javascript" src="../lib/d3-geo-projection.v2.min.js"></script>
+    <script type="text/javascript" src="../lib/topojson.v2.min.js"></script>
+    <script type="text/javascript" src="../lib/d3-legend.min.js"></script>
+    <script type="text/javascript" src="../lib/d3-tip.min.js"></script>
+    <style>
+        /* define CSS rules here */
+        h1{text-align: center;}
+    </style>
+
+    <!-- trying to remove some annoying error in chrome console-->
+    <link rel="shortcut icon" href="#">
+
+    <title></title>
+</head>
+
+
+<body>
+    <!-- Add heading for the visualization -->
+    <h1>Public Opinion of NBA Teams Based on Tweets</h1>
+    <!-- Create dropdown element here. Options should be added after reading in game file, they should not be created here.-->
+    
+
+    <!-- append visualization svg to this div-->
+    <div id="line_graph"><svg></svg></div>
+    <!-- <div id="tooltip"><text id="tip"></text></div> -->
+
+    <script>
+
+        // enter code to define margin and dimensions for svg
+        var margin = 100;
+        var width = 960;
+        var height = 1000;
+
+        // enter code to create svg
+        var svg = d3.select("svg")
+                  .attr('id', 'svg')
+                  .attr('width', width)
+                  .attr('height', height);
+
+        var selection_menu = svg.append("g")
+                  .attr('id', 'menu')
+                  .attr('width', width - 160)
+                  .attr('height', height - 50);
+
+        selection_menu.append("text")
+                  .attr("id", "model_select_text")
+                  .attr("transform", "translate(0, 25)")
+                  .attr("width", 100)
+                  .attr("height", 150)
+                  .attr('stroke', 'black')
+                  .text('Model Select')
+
+        selection_menu.append("foreignObject")
+                  .attr("transform", "translate(0, 28)")
+                  .attr("width", 175)
+                  .attr("height", 50)
+                  .append("xhtml:body")
+                  .html("<form><select id='modelDropdown'>\
+                                <option value='rf'> Random Forest </option>\
+                                <option value='nb'> Naive Bayes </option>\
+                                <option value='lr'> Logistic Regression </option>\
+                                /></form>")
+
+        selection_menu.append("text")
+                  .attr("id", "team_select_text")
+                  .attr("transform", "translate(0, 75)")
+                  .attr("width", 100)
+                  .attr("height", 150)
+                  .attr('stroke', 'black')
+                  .text('Team Select')
+        
+        selection_menu.append("foreignObject")
+                  .attr("transform", "translate(0, 80)")
+                  .attr("width", 100)
+                  .attr("height", 100)
+                  .append("xhtml:body")
+                  .html("<form><select multiple id='teamDropdown'> /></form>")
+
+        selection_menu.append("text")
+                  .attr("id", "model_select_text")
+                  .attr("transform", "translate(0, 180)")
+                  .attr("width", 100)
+                  .attr("height", 150)
+                  .attr('stroke', 'black')
+                  .text('Min Date Select')
+        
+        selection_menu.append("foreignObject")
+                  .attr("transform", "translate(0, 185)")
+                  .attr("width", 100)
+                  .attr("height", 100)
+                  .append("xhtml:body")
+                  .html("<form><select id='minDateDropdown'> /></form>")
+
+        selection_menu.append("text")
+                  .attr("id", "model_select_text")
+                  .attr("transform", "translate(0, 240)")
+                  .attr("width", 100)
+                  .attr("height", 150)
+                  .attr('stroke', 'black')
+                  .text('Max Date Select')
+
+        selection_menu.append("foreignObject")
+                  .attr("transform", "translate(0, 245)")
+                  .attr("width", 100)
+                  .attr("height", 100)
+                  .append("xhtml:body")
+                  .html("<form><select id='maxDateDropdown'> /></form>")
+
+        // enter code to create color scale
+        // var colorScale = function(data) {return d3.scaleQuantile().domain(data).range(["#DDD5AC", "#D88556", "#D74B34", "darkred"])}
+        // var getColor = function(country, selectedGame, scale, count_data) {
+        //     var values = getData(country.properties.name, selectedGame, count_data);
+        //     if (values[0] == "N/A" || values[1] == "N/A")
+        //     {
+        //         return "grey"
+        //     }
+        //     else
+        //     {
+        //         return scale(values[0])
+        //     }
+        // }
+        // enter code to define tooltip
+        var tip = d3.tip().attr("id", "tooltip").attr('class', 'd3-tip')
+                    .html(function(d) { return "Country: " + d.properties.name + 
+                                               "<br>Game: " + currGame + 
+                                               "<br>Avg Rating: " + getData(d.properties.name, currGame, global_count_data)[0] + 
+                                               "<br>Number of Users: " + getData(d.properties.name, currGame, global_count_data)[1];});
+
+        // enter code to define projection and path required for Choropleth
+        // For grading, set the name of functions for projection and path as "projection" and "path"
+
+        var projection = d3.geoNaturalEarth().translate([400, 300]).scale(150);
+        var path = d3.geoPath().projection(projection);
+
+
+        // define any other global variables 
+        var pathToCountCSV = "tweet_counts.csv";
+        var pathToTweetsCSV = "rf_positive_tweets.csv"
+        var gameColumn = []
+        var currGame = ""
+        var currCountry = ""
+        var global_count_data = null
+        var currModel = ["rf"]
+        var currTeams = ['76ers', 'blazers', 'bucks', 'bulls', 'cavaliers', 'celtics', 'grizzlies', 'hawks', 'heat', 'hornets', 'jazz', 'kings', 'knicks', 'lakers', 'magic', 'mavericks', 'nets', 'nuggets', 'pacers', 'pelicans', 'pistons', 'raptors', 'rockets', 'spurs', 'suns', 'thunder', 'timberwolves', 'wizards']
+        var minDate = "2021-11-09"
+        var maxDate = null
+        var absoluteMax = null
+        Promise.all([
+            // enter code to read files
+            d3.csv(pathToCountCSV),
+            d3.csv(pathToTweetsCSV)
+            
+        ]).then(
+            // enter code to call ready() with required arguments
+            results => {
+                count_data = results[0];
+                console.log(count_data);
+                tweets = results[1];
+                ready(null, tweets, count_data);
+            }
+        );
+        
+        // this function should be called once the data from files have been read
+        // world: topojson from world_countries.json
+        // count_data: data from ratings-by-country.csv
+        
+        function ready(error, tweets, count_data) {
+            global_count_data = count_data
+            // enter code to extract all unique games from count_data 
+            // and append the game options to the dropdown
+
+            d3.select("#teamDropdown").selectAll("option")
+              .data(['76ers', 'Blazers', 'Bucks', 'Bulls', 'Cavaliers', 'Celtics', 'Grizzlies', 'Hawks', 'Heat', 'Hornets', 'Jazz', 'Kings', 'Knicks', 'Lakers', 'Magic', 'Mavericks', 'Nets', 'Nuggets', 'Pacers', 'Pelicans', 'Pistons', 'Raptors', 'Rockets', 'Spurs', 'Suns', 'Thunder', 'Timberwolves', 'Wizards'])
+              .enter()
+              .append("option")
+              .text(function(d){return d;})
+
+            var checkboxes = document.querySelectorAll("input[type=checkbox][name=teamselect]");
+            var selectedTeams = []
+            checkboxes.forEach(function(checkbox) {
+                checkbox.addEventListener('change', function() {
+                    selectedTeams = 
+                    Array.from(checkboxes) // Convert checkboxes to an array to use filter and map.
+                    .filter(i => i.checked) // Use Array.filter to remove unchecked checkboxes.
+                    .map(i => i.value) // Use Array.map to extract only the checkbox values from the array of objects.
+                })
+            });
+            
+            var dateParser = d3.timeParse("%Y-%m-%d")
+            console.log(count_data)
+            stringDates = [... new Set(count_data.map(function(value,index) { return value['Date']; }))]
+            console.log(stringDates)
+            var convertedDates = stringDates.map(function(x, index) {return dateParser(x).getTime()})
+            minDate = stringDates[convertedDates.indexOf(Math.min(...convertedDates))]
+            maxDate = stringDates[convertedDates.indexOf(Math.max(...convertedDates))]
+            absoluteMax = stringDates[convertedDates.indexOf(Math.max(...convertedDates))]
+            // var dateParser = d3.timeParse("%Y-%m-%d")
+            // count_data.forEach(element => {
+            //     element['Date'] = dateParser(element['Date']);
+            // });
+            // dates = [... new Set(count_data.map(function(value,index) { return value['Date']; }))]
+            // console.log(dates)
+
+            // event listener for the dropdown. Update choropleth and legend when selection changes. Call createMapAndLegend() with required arguments.
+            var select_Model = document.getElementById("modelDropdown")
+            select_Model.addEventListener("change", function(){ var models = []; selected = d3.select(this).selectAll("option:checked").each(function() { models.push(this.value) }); currModel = models; createMapAndLegend(tweets, count_data, currModel, currTeams, minDate, maxDate); });
+
+            var select_Teams = document.getElementById("teamDropdown")
+            select_Teams.addEventListener("change", function(){ var teams = []; selected = d3.select(this).selectAll("option:checked").each(function() { teams.push(this.value.toLowerCase()) }); currTeams = teams; createMapAndLegend(tweets, count_data, currModel, currTeams, minDate, maxDate); });
+
+            var select_Min_Date = document.getElementById("minDateDropdown")
+            select_Min_Date.addEventListener("change", function(){ var values = []; selected = d3.select(this).selectAll("option:checked").each(function() { values.push(this.value) }); minDate = values[0]; createMapAndLegend(tweets, count_data, currModel, currTeams, minDate, maxDate); });
+
+            var select_Max_Date = document.getElementById("maxDateDropdown")
+            select_Max_Date.addEventListener("change", function(){ var values = []; selected = d3.select(this).selectAll("option:checked").each(function() { values.push(this.value) }); maxDate = values[0]; createMapAndLegend(tweets, count_data, currModel, currTeams, minDate, maxDate); });
+            // create Choropleth with default option. Call createMapAndLegend() with required arguments. 
+            createMapAndLegend(tweets, count_data, currModel, currTeams, minDate, maxDate);
+        }
+
+        // this function should create a Choropleth and legend using the world and count_data arguments for a selectedGame
+        // also use this function to update Choropleth and legend when a different game is selected from the dropdown
+        function createMapAndLegend(world, count_data, currModel, currTeams, minDate, maxDate){ 
+            svg.selectAll("#error_date_range").remove()
+            dates = [... new Set(count_data.map(function(value,index) { return value['Date']; }))]
+            console.log(currModel)
+            console.log(currTeams)
+            console.log(minDate)
+            console.log(maxDate)
+            var dateParser = d3.timeParse("%Y-%m-%d")
+            var minConvertedDate = dateParser(minDate).getTime()
+            console.log(minConvertedDate)
+            var maxConvertedDate = dateParser(maxDate).getTime()
+            console.log(maxConvertedDate)
+            if (minConvertedDate + (1000 * 60 * 60 * 24) >= maxConvertedDate)
+            {
+                selection_menu.append("text")
+                  .attr("id", "error_date_range")
+                  .attr("transform", "translate(0, 555)")
+                  .attr("width", 100)
+                  .attr("height", 150)
+                  .attr('stroke', 'red')
+                  .text('Error: invalid date selection. Min date must be less than max date. Code has defaulted to the maximum possible date.')
+                
+                maxDate = absoluteMax
+                maxConvertedDate = dateParser(maxDate).getTime()
+                console.log(maxDate)
+                // createMapAndLegend(world, count_data, currModel, currTeams, minDate, absoluteMax)
+            }
+
+            stringDates = [... new Set(count_data.map(function(value,index) { if (maxConvertedDate > dateParser(value['Date']).getTime()) {return value['Date']} }).filter(function(x) {return x != undefined;} ))]
+            d3.select("#minDateDropdown").selectAll("option")
+              .data(stringDates)
+              .enter()
+              .append("option")
+              .text(function(d){return d;})
+
+            stringDatesWithinBounds = [... new Set(count_data.map(function(value,index) { if (minConvertedDate < dateParser(value['Date']).getTime()) {return value['Date']} }).filter(function(x) {return x != undefined;} ))]
+            d3.select("#maxDateDropdown").selectAll("option")
+              .data(stringDatesWithinBounds)
+              .enter()
+              .append("option")
+              .text(function(d){return d;})
+              .property("selected", function(d) {return d === maxDate})
+
+            var date_range = [... new Set(count_data.map(function(value,index) { if (minConvertedDate <= dateParser(value['Date']).getTime() && maxConvertedDate >= dateParser(value['Date']).getTime()) {return value['Date']} }).filter(function(x) {return x != undefined;} ))]
+            console.log(date_range)
+            var convertedDateRange = date_range.map(function(x, index) {return dateParser(x).getTime()})
+            date_scale_min = convertedDateRange[convertedDateRange.indexOf(Math.min(...convertedDateRange))]
+            date_scale_max = convertedDateRange[convertedDateRange.indexOf(Math.max(...convertedDateRange))]
+            console.log(date_scale_min, date_scale_max)
+
+            line_data = {}
+
+            // for each team
+            currTeams.forEach(element => {
+                positiveCounts = []
+                negativeCounts = []
+                if (currModel == "rf") //random forest
+                {
+                    date_range.forEach(day => {
+                        positiveCounts.push(...count_data.map(function(value,index) { if (value['Team'] == element && value['Date'] == day){return value['RF Positive']; }}).filter(function(x) {return x != undefined;} ))
+                        negativeCounts.push(...count_data.map(function(value,index) { if (value['Team'] == element && value['Date'] == day){return value['RF Negative']; }}).filter(function(x) {return x != undefined;} ))
+                    });
+                    
+                }
+                else if (currModel == "nb") //naive bayes
+                {
+                    date_range.forEach(day => {
+                        positiveCounts.push(...count_data.map(function(value,index) { if (value['Team'] == element && value['Date'] == day){return value['NB Positive']; }}).filter(function(x) {return x != undefined;} ))
+                        negativeCounts.push(...count_data.map(function(value,index) { if (value['Team'] == element && value['Date'] == day){return value['NB Negative']; }}).filter(function(x) {return x != undefined;} ))
+                    });
+                }
+                else //logistic regression
+                {
+                    date_range.forEach(day => {
+                        positiveCounts.push(...count_data.map(function(value,index) { if (value['Team'] == element && value['Date'] == day){return value['LR Positive']; }}).filter(function(x) {return x != undefined;} ))
+                        negativeCounts.push(...count_data.map(function(value,index) { if (value['Team'] == element && value['Date'] == day){return value['LR Negative']; }}).filter(function(x) {return x != undefined;} ))
+                    });
+                }
+                line_data[element] = [date_range, positiveCounts, negativeCounts]
+            });
+
+            console.log(line_data)
+
+            // create scales x & y for X and Y axis and set their ranges
+            var xscale = d3.scaleLinear().domain([date_scale_min, date_scale_max]).range([0, width - 260])
+            console.log(xscale.domain())
+            var yscale = d3.scaleLinear().range([450, 0])
+
+            // reset svg g elements and create new g element for map
+            // svg.selectAll("g").remove()
+            svg.selectAll("#overall").remove()
+            var overall_graph = svg.append("g")
+                .attr('id', 'overall')
+                .attr('transform', `translate(200, 20)`)
+                .attr('width', width - 160)
+                .attr('height', height - 50);
+
+            // Add the X Axis
+            var xaxisglyph = overall_graph.append("g")
+                            .attr("id", "x-axis-a")
+                            .attr("transform", "translate(0, 450)")
+            xaxis = d3.axisBottom(xscale)
+                        .tickValues(convertedDateRange)
+                        .tickFormat(d3.timeFormat("%Y-%m-%d"))
+            xaxisglyph.call(xaxis);
+
+            // Add the text label for X Axis
+            xaxisglyph.append("text")
+                .attr("transform", "translate(400, 32)")
+                .attr("id", "x-axis label")
+                .attr('stroke', 'black')
+                .style("font-size", "12px")
+                .style("font-family", "Times")
+                .text('Date (YYYY-MM-DD)')
+
+            // Add the Y Axis
+            yaxisglyph = overall_graph.append("g")
+                            .attr("id", "y-axis-a");
+            yaxis = d3.axisLeft()
+                        .scale(yscale);
+            yaxisglyph.call(yaxis);
+
+            // Add the text label for Y axis
+            yaxisglyph.append("text")
+                .attr("transform", "translate(-54, 180) rotate(-90)")
+                .attr("id", "y-axis label")
+                .attr('stroke', 'black')
+                .style("font-size", "12px")
+                .text('Tweet Counts')
+            
+            // // get average rating data for selected game
+            // var country_game_data = function(count_data, selectedGame)
+            // {
+            //     var toReturn = []
+            //     for (var i = 0; i < count_data.length; i++)
+            //     {
+            //         if (count_data[i].Game == selectedGame)
+            //         {
+            //             toReturn.push(count_data[i]["Average Rating"])
+            //         }
+            //     }
+            //     return toReturn
+            // }
+            
+            // // Get average ratings for game-country pairings and use list to create color scale
+            // var ratings = country_game_data(count_data, selectedGame)
+            // // var currColorScale = colorScale(ratings)
+
+            // map.call(tip)
+
+            // map.selectAll("path")
+            //    .data(world.features)
+            //    .enter()
+            //    .append("path")
+            //    .attr("class","continent")
+            //    .attr("d", path)
+            //    .attr("fill", function(d) {return "black"}) //getColor(d, selectedGame, currColorScale, count_data)
+            //    .on('mouseover', tip.show)
+            //    .on('mouseout', tip.hide)
+            
+            // // Add legend to svg
+            // var legendObject = d3.legendColor()
+            //    .labelFormat(d3.format(",.2f"))
+            //    .cells(4)
+            //    .scale(currColorScale);
+
+            // var legend = svg.append("g")
+            //    .attr("id", "legend")
+            //    .attr("transform", "translate(820, 70)")
+            //    .call(legendObject)
+            
+        }
+    </script>
+
+</body>
+
+</html>
