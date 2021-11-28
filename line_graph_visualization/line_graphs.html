@@ -40,7 +40,7 @@
         // enter code to define margin and dimensions for svg
         var margin = 100;
         var width = 1100;
-        var height = 1000;
+        var height = 1300;
 
         // enter code to create svg
         var svg = d3.select("svg")
@@ -117,25 +117,12 @@
                   .append("xhtml:body")
                   .html("<form><select id='maxDateDropdown'> /></form>")
 
-        // enter code to create color scale
-        // var colorScale = function(data) {return d3.scaleQuantile().domain(data).range(["#DDD5AC", "#D88556", "#D74B34", "darkred"])}
-        // var getColor = function(country, selectedGame, scale, count_data) {
-        //     var values = getData(country.properties.name, selectedGame, count_data);
-        //     if (values[0] == "N/A" || values[1] == "N/A")
-        //     {
-        //         return "grey"
-        //     }
-        //     else
-        //     {
-        //         return scale(values[0])
-        //     }
-        // }
         // enter code to define tooltip
         var tip = d3.tip().attr("id", "tooltip").attr('class', 'd3-tip')
-                    .html(function(d) { return "Country: " + d.properties.name + 
-                                               "<br>Game: " + currGame + 
-                                               "<br>Avg Rating: " + getData(d.properties.name, currGame, global_count_data)[0] + 
-                                               "<br>Number of Users: " + getData(d.properties.name, currGame, global_count_data)[1];});
+                    .html(function(d) {return "Team: " + d[2].charAt(0).toUpperCase() + d[2].slice(1);});
+                                            //    "<br>Game: " + currGame + 
+                                            //    "<br>Avg Rating: " + getData(d.properties.name, currGame, global_count_data)[0] + 
+                                            //    "<br>Number of Users: " + getData(d.properties.name, currGame, global_count_data)[1];});
 
         // enter code to define projection and path required for Choropleth
         // For grading, set the name of functions for projection and path as "projection" and "path"
@@ -158,6 +145,8 @@
         var absoluteMax = null
         var min_tweet_count = 0
         var max_tweet_count = 0
+        var min_tweet_count_negative = 0
+        var max_tweet_count_negative = 0
         Promise.all([
             // enter code to read files
             d3.csv(pathToCountCSV),
@@ -178,12 +167,15 @@
             for (let [key, value] of Object.entries(count_data)) {
                 currLine = []
                 for (let i = 0; i < value[0].length; i++) {
-                    // console.log(value[0][i], parseInt(value[1][i]))
-                    currLine.push([value[0][i], parseInt(value[1][i])])
+                    if (positive) {
+                        currLine.push([value[0][i], parseInt(value[1][i]), key])
+                    } else {
+                        currLine.push([value[0][i], parseInt(value[2][i]), key])
+                    }
+                    
                 }
                 lines.push(currLine)
             }
-            // console.log(lines)
             return lines;
         }
         
@@ -237,6 +229,22 @@
             min_tweet_count = Math.min(min_rftweet_count, min_nbtweet_count, min_lrtweet_count)
             max_tweet_count = Math.max(max_rftweet_count, max_nbtweet_count, max_lrtweet_count)
 
+            // for negative tweets
+            min_rftweet_count = Math.min(... new Set(count_data.map(function(value,index) { return value['RF Negative']})))
+            max_rftweet_count = Math.max(... new Set(count_data.map(function(value,index) { return value['RF Negative']})))
+            console.log(min_rftweet_count, max_rftweet_count)
+
+            min_nbtweet_count = Math.min(... new Set(count_data.map(function(value,index) { return value['NB Negative']})))
+            max_nbtweet_count = Math.max(... new Set(count_data.map(function(value,index) { return value['NB Negative']})))
+            console.log(min_nbtweet_count, max_nbtweet_count)
+
+            min_lrtweet_count = Math.min(... new Set(count_data.map(function(value,index) { return value['LR Negative']})))
+            max_lrtweet_count = Math.max(... new Set(count_data.map(function(value,index) { return value['LR Negative']})))
+            console.log(min_lrtweet_count, max_lrtweet_count)
+
+            min_tweet_count_negative = Math.min(min_rftweet_count, min_nbtweet_count, min_lrtweet_count)
+            max_tweet_count_negative = Math.max(max_rftweet_count, max_nbtweet_count, max_lrtweet_count)
+
 
 
             // event listener for the dropdown. Update choropleth and legend when selection changes. Call createMapAndLegend() with required arguments.
@@ -273,7 +281,7 @@
             {
                 selection_menu.append("text")
                   .attr("id", "error_date_range")
-                  .attr("transform", "translate(0, 555)")
+                  .attr("transform", "translate(0, 530)")
                   .attr("width", 100)
                   .attr("height", 150)
                   .attr('stroke', 'red')
@@ -349,8 +357,7 @@
                     .x(function(d) { return xscale(d[0]); })
                     .y(function(d) { return yscale(d[1]); });
 
-            // reset svg g elements and create new g element for map
-            // svg.selectAll("g").remove()
+            // reset svg g elements and create new g element for graphs
             svg.selectAll("#positive").remove()
             var positive_graph = svg.append("g")
                 .attr('id', 'positive')
@@ -405,6 +412,7 @@
                 .attr("d", function(d){return line(d)});
 
             col_num = 0
+            positive_graph_body.call(tip);
             positive_line_data.forEach(element => {
                 positive_graph_body.selectAll("line-circle")
                     .data(element)
@@ -413,6 +421,8 @@
                     .attr("r", 5)
                     .attr("cx", function(d){return xscale(d[0]);})
                     .attr("cy", function(d){return yscale(d[1]);})
+                    .on("mouseover", tip.show)
+                    .on("mouseout", tip.hide);
                 col_num+=1
             });
 
@@ -442,6 +452,108 @@
                 .attr("x", 30)
                 .attr("y", function(d, i) {return i * 17 + 3.5})
                 .text(function(d, i) { return d.charAt(0).toUpperCase() + d.slice(1);  })
+                .style("font-size", "13px")
+                .attr("font-weight", "lighter")
+
+
+            //////////////////////////////// NEGATIVE COUNTS GRAPH \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+
+
+            svg.selectAll("#negative").remove()
+            var negative_graph = svg.append("g")
+                .attr('id', 'negative')
+                .attr('transform', `translate(200, 550)`)
+                .attr('width', width - 800)
+                .attr('height', height - 50);
+
+            // Add the X Axis
+            var xaxisglyph_2 = negative_graph.append("g")
+                            .attr("id", "x-axis-b")
+                            .attr("transform", "translate(0, 450)")
+            xaxis_2 = d3.axisBottom(xscale)
+                        .tickValues(convertedDateRange)
+                        .tickFormat(d3.timeFormat("%Y-%m-%d"))
+            xaxisglyph_2.call(xaxis_2);
+
+            // Add the text label for X Axis
+            xaxisglyph_2.append("text")
+                .attr("transform", "translate(400, 32)")
+                .attr("id", "x-axis label 2")
+                .attr('stroke', 'black')
+                .style("font-size", "12px")
+                .style("font-family", "Times")
+                .text('Date (YYYY-MM-DD)')
+
+            var yscale = d3.scaleLinear().domain([min_tweet_count_negative, max_tweet_count_negative]).range([450, 0]).nice()
+            // Add the Y Axis
+            yaxisglyph_2 = negative_graph.append("g")
+                            .attr("id", "y-axis-b");
+            yaxis_2 = d3.axisLeft()
+                        .scale(yscale);
+            yaxisglyph_2.call(yaxis_2);
+
+            // Add the text label for Y axis
+            yaxisglyph_2.append("text")
+                .attr("transform", "translate(-54, 180) rotate(-90)")
+                .attr("id", "y-axis label")
+                .attr('stroke', 'black')
+                .style("font-size", "12px")
+                .text('Negative Tweet Counts')
+
+            col_num = 0
+            var negative_graph_body = negative_graph.append('g')
+                    .attr('id', 'lines-a');
+            negative_line_data = processData(line_data, false)
+
+            negative_graph_body.selectAll("lines")
+                .data(negative_line_data)
+                .enter().append("path")
+                .attr("fill", "none")
+                .attr("stroke", function(){if (col_num < 9){return d3.schemeSet1[col_num++]} else if (col_num < 17) {return d3.schemeSet2[col_num++ - 9]} else {return d3.schemeSet3[col_num++ - 17]}})
+                .attr("stroke-width", 1.5)
+                .attr("d", function(d){return line(d)})
+
+            negative_graph_body.call(tip)
+            col_num = 0
+            negative_line_data.forEach(element => {
+                negative_graph_body.selectAll("line-circle")
+                    .data(element)
+                    .enter().append("circle")
+                    .attr("fill", function(d, i) {if (col_num < 9){return d3.schemeSet1[col_num]} else if (col_num < 17) {return d3.schemeSet2[col_num - 9]} else {return d3.schemeSet3[col_num - 17]}})
+                    .attr("r", 5)
+                    .attr("cx", function(d){return xscale(d[0]);})
+                    .attr("cy", function(d){return yscale(d[1]);})
+                    .on("mouseover", tip.show)
+                    .on("mouseout", tip.hide);
+                col_num+=1
+            });
+
+            svg.selectAll("#negative_legend").remove()
+            var negative_legend = svg.append("g")
+                .attr('id', 'negative_legend')
+                .attr('transform', `translate(950, 10)`)
+                .attr('width', width - 160)
+                .attr('height', height - 50);
+
+            col_num = 0
+            negative_legend.selectAll("circle")
+                .data(currTeams)
+                .enter().append("circle")
+                .attr("id", function(d, i) { return d; })
+                .attr("fill", function(d, i) {if (col_num < 9){return d3.schemeSet1[col_num++]} else if (col_num < 17) {return d3.schemeSet2[col_num++ - 9]} else {return d3.schemeSet3[col_num++ - 17]}})
+                .attr("cx", 20)
+                .attr("cy", function(d, i) {return i * 17})
+                .attr("r", 6)
+
+            col_num = 0
+            negative_legend.selectAll("text")
+                .data(currTeams)
+                .enter().append("text")
+                .attr("id", function(d, i) { return d; })
+                .attr("stroke", "black")
+                .attr("x", 30)
+                .attr("y", function(d, i) {return i * 17 + 3.5})
+                .text(function(d, i) { return d.charAt(0).toUpperCase() + d.slice(1); })
                 .style("font-size", "13px")
                 .attr("font-weight", "lighter")
             
