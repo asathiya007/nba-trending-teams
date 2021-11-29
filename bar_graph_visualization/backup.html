@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Public Opinion of NBA Teams</title>
+</head>
+  <style>
+
+
+    /* define CSS rules here */
+    .header {
+        font-family: "Century Gothic", CenturyGothic, Geneva, AppleGothic, sans-serif;
+    }
+    body {
+        font-family: "Century Gothic", CenturyGothic, Geneva, AppleGothic, sans-serif;
+    }
+    select {
+        font-family: "Century Gothic", CenturyGothic, Geneva, AppleGothic, sans-serif;
+    }
+
+    #tooltip {
+            position: absolute;
+            width: 200px;
+            height: auto;
+            padding: 10px;
+            background-color: rgba(0, 0, 0, 0.658);
+            color: azure;
+            border-radius: 10px;
+    }
+    
+    rect.bar-rect { fill: #189ad3; }
+    rect.bar-rect:hover { 
+      fill: #107dac;
+      transition: all .2s;
+    }
+
+  </style>
+
+<body>
+    <h1 class="header">Public Opinion of NBA Teams</h1>
+
+    Team Select:
+    <select id = "teamsDropdown"></select>
+    <h2>Random Forest Analysis</h2>
+    <div class="rf"></div>
+    <br>
+    <h2>Naive Bayes Analysis</h2>
+    <div class="nb"></div>
+    <br>
+    <h2>Linear Regression Analysis</h2>
+    <div class="lr"></div>
+
+
+  <script src="https://d3js.org/d3.v6.js"></script>
+  
+  <script>
+    const width = 1000;
+    const height = 600;
+    const margin = {'top': 20, 'right': 20, 'bottom': 100, 'left': 100};
+    const graphWidth = width - margin.left - margin.right;
+    const graphHeight = height - margin.top - margin.bottom;
+    var teamIndex = 0;
+
+    teamListFilled = 0;
+
+    function populateTeamList(data) {
+            var onlyTeams = [];
+            for (var i = 0; i < data.length; i++) {
+                onlyTeams.push(data[i]['Team']);
+                // var select = document.getElementById("teamsDropdown");
+                // select.appendChild(option);
+            }   
+            var unique = onlyTeams.filter(onlyUnique);
+            unique.sort();
+
+            console.log("unique");
+            console.log(unique);
+
+            for (var i = 0; i < unique.length; i++) {
+                var option = document.createElement("option");
+                option.text = unique[i];
+                option.value = unique[i];
+
+                var select = document.getElementById("teamsDropdown");
+                select.appendChild(option);
+
+            }
+    }
+
+    function onlyUnique(value, index, self) {
+            return self.indexOf(value) === index;
+        } 
+
+    function draw(selector) {
+        Promise.all([
+            // enter code to read files
+            d3.csv('tweet_counts_bar.csv')
+            
+        ]).then(function(values) {
+            tweets = values[0];
+
+
+            //Only want to populate this dropdown ONCE!
+            if (teamListFilled == 0) {
+                populateTeamList(tweets);
+                teamListFilled = 1;
+            }
+            
+            populateBars(tweets);
+            
+        });
+
+
+        const svg = d3.select(selector)
+            .append('svg')
+            .attr('width', width)
+            .attr('height', height);
+            const graph = svg.append('g')
+            .attr('width', graphWidth)
+            .attr('height', graphHeight)
+            .attr('transform', `translate(${margin.left}, ${margin.top})`);
+
+        svg.append("text")
+            .attr("text-anchor", "middle") // This makes it easy to centre the text as the transform is applied to the anchor.
+            .attr("transform", "translate(" + (width / 3) + "," + (height) + ")") // Centre below axis.
+            .text("Sentiment");
+
+        svg.append("text")
+            .attr("text-anchor", "middle") // This makes it easy to centre the text as the transform is applied to the anchor.
+            .attr("transform", "translate(" + (25) + "," + (height / 2) + ")rotate(-90)") // Text is drawn off the screen top left, move down and out and rotate.
+            .text("Value");
+
+        const gXAxis = graph.append('g')
+        .attr('transform', `translate(0, ${graphHeight})`);
+        const gYAxis = graph.append('g')
+
+        function populateBars(gameData) {
+
+            console.log("game data")
+            console.log(gameData)
+
+            console.log("Current Team");
+            const selectElement = document.getElementById('teamsDropdown');
+            curTeam = "";
+            for (i = 0; i < gameData.length; i++) {
+                if (gameData[i]['Team'] = selectElement.value) {
+                    curTeam = gameData[i];
+                }
+            }
+            console.log(curTeam);
+            xLabels = ['Positive', 'Negative']
+            //If we have random forrest
+            if (selector === ".rf") {
+                //Get the RFpostive number for this team
+                positiveCount = curTeam['RF Positive'];
+                negativeCount = curTeam['RF Negative'];
+
+                console.log("Pos, Neg");
+                console.log(positiveCount);
+                console.log(negativeCount);
+                
+                
+                var rectData = [{x: 'Positive', y: positiveCount}, {x: 'Negative', y: negativeCount}];
+
+                //Get the RFnegative number for this team
+                const y = d3.scaleLinear()
+                .domain([0, d3.max([positiveCount, negativeCount])])
+                .range([graphHeight, 0]);
+                const x = d3.scaleBand()
+                    .domain(xLabels)
+                    .range([0, 500])
+                    .paddingInner(0.2)
+                    .paddingOuter(0.2);
+
+
+                const rects = graph.selectAll('rect')
+                        .data(rectData);
+                    rects.attr('width', x.bandwidth)
+                        .attr('class', 'bar-rect')
+                        .attr('height', d => graphHeight - y(d.y))
+                        .attr('x', d => x(d.x))
+                        .attr('y', d => y(d.y))
+                        ;
+                    rects.enter()
+                        .append('rect')
+                        .attr('class', 'bar-rect')
+                        .style('fill', function(d) { 
+                            
+                            if (d.x == "Positive") {
+                                return "Teal"
+                            } else {
+                                return "Orange"
+                            }
+                        })
+                        .attr('width', x.bandwidth)
+                        .attr('height', d => graphHeight - y(d.y))
+                        .attr('x', d => x(d.x))
+                        .attr('y', d => y(d.y))
+
+                    const xAxis = d3.axisBottom(x);
+                    const yAxis = d3.axisLeft(y)
+                        .ticks(5);
+                    gXAxis.call(xAxis);
+                    gYAxis.call(yAxis);
+                    gXAxis.selectAll('text')
+                        .style('font-size', 14);
+                    
+                    gYAxis.selectAll('text')
+                        .style('font-size', 14);
+
+            }
+
+            if (selector === ".nb") {
+
+
+                positiveCount = curTeam['NB Positive'];
+                negativeCount = curTeam['NB Negative'];
+
+                console.log("Pos, Neg");
+                console.log(positiveCount);
+                console.log(negativeCount);
+                
+                
+                var rectData = [{x: 'Positive', y: positiveCount}, {x: 'Negative', y: negativeCount}];
+
+                //Get the RFnegative number for this team
+                const y = d3.scaleLinear()
+                .domain([0, d3.max([positiveCount, negativeCount])])
+                .range([graphHeight, 0]);
+                const x = d3.scaleBand()
+                    .domain(xLabels)
+                    .range([0, 500])
+                    .paddingInner(0.2)
+                    .paddingOuter(0.2);
+
+
+                const rects = graph.selectAll('rect')
+                        .data(rectData);
+                    rects.attr('width', x.bandwidth)
+                        .attr('class', 'bar-rect')
+                        .attr('height', d => graphHeight - y(d.y))
+                        .attr('x', d => x(d.x))
+                        .attr('y', d => y(d.y))
+                        ;
+                    rects.enter()
+                        .append('rect')
+                        .attr('class', 'bar-rect')
+                        .style('fill', function(d) { 
+                            
+                            if (d.x == "Positive") {
+                                return "Teal"
+                            } else {
+                                return "Orange"
+                            }
+                        })
+                        .attr('width', x.bandwidth)
+                        .attr('height', d => graphHeight - y(d.y))
+                        .attr('x', d => x(d.x))
+                        .attr('y', d => y(d.y))
+
+                    const xAxis = d3.axisBottom(x);
+                    const yAxis = d3.axisLeft(y)
+                        .ticks(5);
+                    gXAxis.call(xAxis);
+                    gYAxis.call(yAxis);
+                    gXAxis.selectAll('text')
+                        .style('font-size', 14);
+                    
+                    gYAxis.selectAll('text')
+                        .style('font-size', 14);
+
+            }
+
+            if (selector === ".lr") {
+                
+                positiveCount = curTeam['LR Positive'];
+                negativeCount = curTeam['LR Negative'];
+
+                console.log("Pos, Neg");
+                console.log(positiveCount);
+                console.log(negativeCount);
+                
+                
+                var rectData = [{x: 'Positive', y: positiveCount}, {x: 'Negative', y: negativeCount}];
+
+                //Get the RFnegative number for this team
+                const y = d3.scaleLinear()
+                .domain([0, d3.max([positiveCount, negativeCount])])
+                .range([graphHeight, 0]);
+                const x = d3.scaleBand()
+                    .domain(xLabels)
+                    .range([0, 500])
+                    .paddingInner(0.2)
+                    .paddingOuter(0.2);
+
+
+                const rects = graph.selectAll('rect')
+                        .data(rectData);
+                    rects.attr('width', x.bandwidth)
+                        .attr('class', 'bar-rect')
+                        .attr('height', d => graphHeight - y(d.y))
+                        .attr('x', d => x(d.x))
+                        .attr('y', d => y(d.y))
+                        ;
+                    rects.enter()
+                        .append('rect')
+                        .attr('class', 'bar-rect')
+                        .style('fill', function(d) { 
+                            
+                            if (d.x == "Positive") {
+                                return "Teal"
+                            } else {
+                                return "Orange"
+                            }
+                        })
+                        .attr('width', x.bandwidth)
+                        .attr('height', d => graphHeight - y(d.y))
+                        .attr('x', d => x(d.x))
+                        .attr('y', d => y(d.y))
+
+                    const xAxis = d3.axisBottom(x);
+                    const yAxis = d3.axisLeft(y)
+                        .ticks(5);
+                    gXAxis.call(xAxis);
+                    gYAxis.call(yAxis);
+                    gXAxis.selectAll('text')
+                        .style('font-size', 14);
+                    
+                    gYAxis.selectAll('text')
+                        .style('font-size', 14);
+            }
+        }
+        //Make the Legend
+        svg.append("circle").attr("cx",(width * .8)).attr("cy",margin.top + 20).attr("r", 6).style("fill", "Teal")
+        svg.append("circle").attr("cx",(width * .8)).attr("cy",margin.top + 40).attr("r", 6).style("fill", "Orange")
+        svg.append("text").attr("x", (width * .8) + 20).attr("y", margin.top + 20).text("Postive").style("font-size", "15px").attr("alignment-baseline","middle")
+        svg.append("text").attr("x", (width * .8) + 20).attr("y", margin.top + 40).text("Negative").style("font-size", "15px").attr("alignment-baseline","middle")
+        svg.append("text").attr("x", (width * .8)).attr("y", margin.top - 10).text("Legend").style("font-size", "15px").attr("alignment-baseline","middle")
+      
+
+    } 
+    //Draw all the bar graphs
+
+    selectElement = document.getElementById('teamsDropdown');
+        selectElement.addEventListener('change', (event) => {     
+            d3.selectAll("svg").remove();
+            makeGraphs();
+    });
+
+    function makeGraphs() {
+        draw(".rf");
+        draw(".nb");
+        draw(".lr");
+    }
+    makeGraphs();
+  </script>
+
+</body>
+</html>
