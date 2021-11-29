@@ -15,6 +15,7 @@
     <script src= "https://d3js.org/d3-scale-chromatic.v1.min.js"></script> 
     <style>
         /* define CSS rules here */
+        h1 {text-align: center;}
         /* credit to https://bl.ocks.org/EmbraceLife/739cf167627d7748730eef3663aaec89 for the tooltip css */
         #tooltip {
             position: absolute;
@@ -383,10 +384,10 @@
 
             // Add line graph title
             positive_graph.append("text")
-                .attr("transform", "translate(500, 0)")
+                .attr("transform", "translate(360, 0)")
                 .attr("id", "title-a")
                 .style("font-size", "18px")
-                .text('Number of Ratings 2016-2020')
+                .text('Date vs. Positive Tweet Counts Per NBA Team')
 
             // Add the X Axis
             var xaxisglyph = positive_graph.append("g")
@@ -399,7 +400,7 @@
 
             // Add the text label for X Axis
             xaxisglyph.append("text")
-                .attr("transform", "translate(400, 32)")
+                .attr("transform", "translate(540, 32)")
                 .attr("id", "x-axis label")
                 .attr('stroke', 'black')
                 .attr("fill", "black")
@@ -483,14 +484,19 @@
 
 
             //////////////////////////////// NEGATIVE COUNTS GRAPH \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
-
-
             svg.selectAll("#negative").remove()
             var negative_graph = svg.append("g")
                 .attr('id', 'negative')
                 .attr('transform', `translate(200, 550)`)
                 .attr('width', width - 800)
                 .attr('height', height - 50);
+
+            // Add line graph title
+            negative_graph.append("text")
+                .attr("transform", "translate(360, 0)")
+                .attr("id", "title-a")
+                .style("font-size", "18px")
+                .text('Date vs. Negative Tweet Counts Per NBA Team')
 
             // Add the X Axis
             var xaxisglyph_2 = negative_graph.append("g")
@@ -503,7 +509,7 @@
 
             // Add the text label for X Axis
             xaxisglyph_2.append("text")
-                .attr("transform", "translate(400, 32)")
+                .attr("transform", "translate(540, 32)")
                 .attr("id", "x-axis label 2")
                 .attr('stroke', 'black')
                 .attr("fill", "black")
