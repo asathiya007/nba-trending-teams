@@ -397,10 +397,12 @@
                         .tickValues(convertedDateRange)
                         .tickFormat(d3.timeFormat("%Y-%m-%d"))
             xaxisglyph.call(xaxis);
+            xaxisglyph.selectAll("text")
+                .attr("transform", "translate(0, 5) rotate(20)")
 
             // Add the text label for X Axis
-            xaxisglyph.append("text")
-                .attr("transform", "translate(540, 32)")
+            positive_graph.append("text")
+                .attr("transform", "translate(490, 500)")
                 .attr("id", "x-axis label")
                 .attr('stroke', 'black')
                 .attr("fill", "black")
@@ -506,10 +508,12 @@
                         .tickValues(convertedDateRange)
                         .tickFormat(d3.timeFormat("%Y-%m-%d"))
             xaxisglyph_2.call(xaxis_2);
+            xaxisglyph_2.selectAll("text")
+                .attr("transform", "translate(0, 5) rotate(20)")
 
             // Add the text label for X Axis
-            xaxisglyph_2.append("text")
-                .attr("transform", "translate(540, 32)")
+            negative_graph.append("text")
+                .attr("transform", "translate(490, 500)")
                 .attr("id", "x-axis label 2")
                 .attr('stroke', 'black')
                 .attr("fill", "black")
