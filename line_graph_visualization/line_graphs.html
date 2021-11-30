@@ -202,13 +202,13 @@
         var global_lr_neg_tweets = null
         Promise.all([
             // enter code to read files
-            d3.csv("tweet_counts.csv"),
-            d3.csv("rf_positive_tweets.csv"),
-            d3.csv("rf_negative_tweets.csv"),
-            d3.csv("nb_positive_tweets.csv"),
-            d3.csv("nb_negative_tweets.csv"),
-            d3.csv("lr_positive_tweets.csv"),
-            d3.csv("lr_negative_tweets.csv")
+            d3.csv("data_files/tweet_counts.csv"),
+            d3.csv("data_files/rf_positive_tweets.csv"),
+            d3.csv("data_files/rf_negative_tweets.csv"),
+            d3.csv("data_files/nb_positive_tweets.csv"),
+            d3.csv("data_files/nb_negative_tweets.csv"),
+            d3.csv("data_files/lr_positive_tweets.csv"),
+            d3.csv("data_files/lr_negative_tweets.csv")
         ]).then(
             // enter code to call ready() with required arguments
             results => {
