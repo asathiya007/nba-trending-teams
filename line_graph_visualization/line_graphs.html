@@ -148,24 +148,24 @@
                     if (positive) {
                         if (currModel[0] == "rf") {
                             var sample_tweet = global_rf_pos_tweets.map(function(value,index) { if (value['Team'] == key && value['Date'] == date_range[i]) {return value['Tweet'];}}).filter(function(x) {return x != undefined;})
-                            currLine.push([value[0][i], parseInt(value[1][i]), key, ...sample_tweet])
+                            currLine.push([value[0][i], parseInt(value[1][i]), key, ...sample_tweet, value[1][i]])
                         } else if (currModel[0] == "nb") {
                             var sample_tweet = global_nb_pos_tweets.map(function(value,index) { if (value['Team'] == key && value['Date'] == date_range[i]) {return value['Tweet'];}}).filter(function(x) {return x != undefined;})
-                            currLine.push([value[0][i], parseInt(value[1][i]), key, ...sample_tweet])
+                            currLine.push([value[0][i], parseInt(value[1][i]), key, ...sample_tweet, value[1][i]])
                         } else {
                             var sample_tweet = global_lr_pos_tweets.map(function(value,index) { if (value['Team'] == key && value['Date'] == date_range[i]) {return value['Tweet'];}}).filter(function(x) {return x != undefined;})
-                            currLine.push([value[0][i], parseInt(value[1][i]), key, ...sample_tweet])
+                            currLine.push([value[0][i], parseInt(value[1][i]), key, ...sample_tweet, value[1][i]])
                         }
                     } else {
                         if (currModel[0] == "rf") {
                             var sample_tweet = global_rf_neg_tweets.map(function(value,index) { if (value['Team'] == key && value['Date'] == date_range[i]) {return value['Tweet'];}}).filter(function(x) {return x != undefined;})
-                            currLine.push([value[0][i], parseInt(value[2][i]), key, ...sample_tweet])
+                            currLine.push([value[0][i], parseInt(value[2][i]), key, ...sample_tweet, value[2][i]])
                         } else if (currModel[0] == "nb") {
                             var sample_tweet = global_nb_neg_tweets.map(function(value,index) { if (value['Team'] == key && value['Date'] == date_range[i]) {return value['Tweet'];}}).filter(function(x) {return x != undefined;})
-                            currLine.push([value[0][i], parseInt(value[2][i]), key, ...sample_tweet])
+                            currLine.push([value[0][i], parseInt(value[2][i]), key, ...sample_tweet, value[2][i]])
                         } else {
                             var sample_tweet = global_lr_neg_tweets.map(function(value,index) { if (value['Team'] == key && value['Date'] == date_range[i]) {return value['Tweet'];}}).filter(function(x) {return x != undefined;})
-                            currLine.push([value[0][i], parseInt(value[2][i]), key, ...sample_tweet])
+                            currLine.push([value[0][i], parseInt(value[2][i]), key, ...sample_tweet, value[2][i]])
                         }
                     }
                     
@@ -180,8 +180,9 @@
         //              we can expect to see the team name and a positive Blazers Tweet 
         //              from that day displayed on the tooltip.
         var tip = d3.tip().attr("id", "tooltip").attr('class', 'd3-tip')
-                    .html(function(d) {return "Team: " + d[2].charAt(0).toUpperCase() + d[2].slice(1) +
-                                               "<br>Sample Tweet: " + d[3] ;})
+                    .html(function(d) {return "<b>Team:</b> " + d[2].charAt(0).toUpperCase() + d[2].slice(1) +
+                                              "<br><b>Tweet Count:</b> " + d[4] +
+                                              "<br><b>Sample Tweet:</b> " + d[3] ;})
 
         // global variables 
         var global_count_data = null
