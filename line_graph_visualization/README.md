@@ -1,4 +1,4 @@
-# NBA Team Sentiment Visualizer (Tweet-based)
+# NBA Team Sentiment Visualizer (Tweet-based line graph)
 
 ## Overview
 This visualization shows an overall sentiment trend for each of the NBA teams over a specified period of time.
