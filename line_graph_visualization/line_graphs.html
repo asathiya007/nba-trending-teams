@@ -46,8 +46,6 @@
 
     <!-- trying to remove some annoying error in chrome console-->
     <link rel="shortcut icon" href="#">
-
-    <title></title>
 </head>
 
 
@@ -74,6 +72,7 @@
                   .attr('width', width - 160)
                   .attr('height', height - 50);
 
+        // add model selection label and dropdown
         selection_menu.append("text")
                   .attr("id", "model_select_text")
                   .attr("transform", "translate(0, 25)")
@@ -94,6 +93,7 @@
                                 <option value='lr'> Logistic Regression </option>\
                                 /></form>")
 
+        // add team selection label and dropdown
         selection_menu.append("text")
                   .attr("id", "team_select_text")
                   .attr("transform", "translate(0, 75)")
@@ -110,6 +110,7 @@
                   .append("xhtml:body")
                   .html("<form><select multiple id='teamDropdown'> /></form>")
 
+        // add date range seleciton labels and dropdowns
         selection_menu.append("text")
                   .attr("id", "model_select_text")
                   .attr("transform", "translate(0, 180)")
@@ -140,14 +141,21 @@
                   .append("xhtml:body")
                   .html("<form><select id='maxDateDropdown'> /></form>")
 
+        // Purpose: this function combines all of the count data along with its metadata (selected model, dates,
+        //          positive vs. negative) into a singular array of lines. This array can then be passed into the line()
+        //           and tip() functions to plot and display the appropriate data.
         function processData(global_count_data, positive, currModel, date_range) {
             lines = []
+            // for each team and associated values (date + positive and negative counts) from prior data processing
             for (let [key, value] of Object.entries(global_count_data)) {
                 currLine = []
+                // for each date in the values, construct a line where x = date and y = positive/negative count
                 for (let i = 0; i < value[0].length; i++) {
                     if (positive) {
                         if (currModel[0] == "rf") {
+                            // get sample tweet to display in tool tip
                             var sample_tweet = global_rf_pos_tweets.map(function(value,index) { if (value['Team'] == key && value['Date'] == date_range[i]) {return value['Tweet'];}}).filter(function(x) {return x != undefined;})
+                            // push the date, int(positive count) for plotting, team name, sample tweet, and positive count (for tooltip)
                             currLine.push([value[0][i], parseInt(value[1][i]), key, ...sample_tweet, value[1][i]])
                         } else if (currModel[0] == "nb") {
                             var sample_tweet = global_nb_pos_tweets.map(function(value,index) { if (value['Team'] == key && value['Date'] == date_range[i]) {return value['Tweet'];}}).filter(function(x) {return x != undefined;})
@@ -187,7 +195,7 @@
         // global variables 
         var global_count_data = null
         var currModel = ["rf"]
-        var currTeams = ['76ers', 'blazers', 'bucks', 'bulls', 'cavaliers', 'celtics', 'grizzlies', 'hawks', 'heat', 'hornets', 'jazz', 'kings', 'knicks', 'lakers', 'magic', 'mavericks', 'nets', 'nuggets', 'pacers', 'pelicans', 'pistons', 'raptors', 'rockets', 'spurs', 'suns', 'thunder', 'timberwolves', 'wizards']
+        var currTeams = ['76ers', 'blazers', 'bucks', 'bulls', 'cavaliers', 'celtics', 'clippers', 'grizzlies', 'hawks', 'heat', 'hornets', 'jazz', 'kings', 'knicks', 'lakers', 'magic', 'mavericks', 'nets', 'nuggets', 'pacers', 'pelicans', 'pistons', 'raptors', 'rockets', 'spurs', 'suns', 'thunder', 'timberwolves', 'warriors', 'wizards']
         var minDate = "2021-11-09"
         var maxDate = null
         var absoluteMaxDate = null
@@ -202,7 +210,7 @@
         var global_lr_pos_tweets = null
         var global_lr_neg_tweets = null
         Promise.all([
-            // enter code to read files
+            // read files
             d3.csv("data_files/tweet_counts.csv"),
             d3.csv("data_files/rf_positive_tweets.csv"),
             d3.csv("data_files/rf_negative_tweets.csv"),
@@ -211,7 +219,7 @@
             d3.csv("data_files/lr_positive_tweets.csv"),
             d3.csv("data_files/lr_negative_tweets.csv")
         ]).then(
-            // enter code to call ready() with required arguments
+            // call ready() once CSV files are read and saved
             results => {
                 global_count_data = results[0];
                 global_rf_pos_tweets = results[1];
@@ -224,34 +232,27 @@
             }
         );
         
-        // Purpose: called once the data from files have been read, initiates the 
+        // Purpose: this function is called once the data from files has been read, initiates the visualization process.
+        //          Event listeners are defined here, so this method is the main control center for refreshing the 
+        //          visualization once a selection is changed in the selection menu.
         function ready() {
 
+            // Add team names to team dropdown options
             d3.select("#teamDropdown").selectAll("option")
-              .data(['76ers', 'Blazers', 'Bucks', 'Bulls', 'Cavaliers', 'Celtics', 'Grizzlies', 'Hawks', 'Heat', 'Hornets', 'Jazz', 'Kings', 'Knicks', 'Lakers', 'Magic', 'Mavericks', 'Nets', 'Nuggets', 'Pacers', 'Pelicans', 'Pistons', 'Raptors', 'Rockets', 'Spurs', 'Suns', 'Thunder', 'Timberwolves', 'Wizards'])
+              .data(['76ers', 'Blazers', 'Bucks', 'Bulls', 'Cavaliers', 'Celtics', 'Clippers', 'Grizzlies', 'Hawks', 'Heat', 'Hornets', 'Jazz', 'Kings', 'Knicks', 'Lakers', 'Magic', 'Mavericks', 'Nets', 'Nuggets', 'Pacers', 'Pelicans', 'Pistons', 'Raptors', 'Rockets', 'Spurs', 'Suns', 'Thunder', 'Timberwolves', 'Warriors', 'Wizards'])
               .enter()
               .append("option")
               .text(function(d){return d;})
-
-            var checkboxes = document.querySelectorAll("input[type=checkbox][name=teamselect]");
-            var selectedTeams = []
-            checkboxes.forEach(function(checkbox) {
-                checkbox.addEventListener('change', function() {
-                    selectedTeams = 
-                    Array.from(checkboxes) // Convert checkboxes to an array to use filter and map.
-                    .filter(i => i.checked) // Use Array.filter to remove unchecked checkboxes.
-                    .map(i => i.value) // Use Array.map to extract only the checkbox values from the array of objects.
-                })
-            });
             
+            // find min and max dates to display in the dropdown selection lists
             var dateParser = d3.timeParse("%Y-%m-%d")
             stringDates = [... new Set(global_count_data.map(function(value,index) { return value['Date']; }))]
             var convertedDates = stringDates.map(function(x, index) {return dateParser(x).getTime()})
             minDate = stringDates[convertedDates.indexOf(Math.min(...convertedDates))]
             maxDate = stringDates[convertedDates.indexOf(Math.max(...convertedDates))]
             absoluteMaxDate = stringDates[convertedDates.indexOf(Math.max(...convertedDates))]
-            
-            // for positive tweets
+
+            // get min and max positive tweet counts for y axis bounds
             min_rftweet_count = Math.min(... new Set(global_count_data.map(function(value,index) { return value['RF Positive']})))
             max_rftweet_count = Math.max(... new Set(global_count_data.map(function(value,index) { return value['RF Positive']})))
 
@@ -264,7 +265,7 @@
             min_positive_tweet_count = Math.min(min_rftweet_count, min_nbtweet_count, min_lrtweet_count)
             max_positive_tweet_count = Math.max(max_rftweet_count, max_nbtweet_count, max_lrtweet_count)
 
-            // for negative tweets
+            // get min and max negative tweet counts for y axis bounds
             min_rftweet_count = Math.min(... new Set(global_count_data.map(function(value,index) { return value['RF Negative']})))
             max_rftweet_count = Math.max(... new Set(global_count_data.map(function(value,index) { return value['RF Negative']})))
 
@@ -277,30 +278,37 @@
             min_negative_tweet_count = Math.min(min_rftweet_count, min_nbtweet_count, min_lrtweet_count)
             max_negative_tweet_count = Math.max(max_rftweet_count, max_nbtweet_count, max_lrtweet_count)
 
-            // event listener for the dropdown. Update choropleth and legend when selection changes. Call createMapAndLegend() with required arguments.
+            // event listeners for dropdowns. Update graphs and legend when selection changes by calling createLineGraphsAndLegends() with updated arguments.
             var select_Model = document.getElementById("modelDropdown")
-            select_Model.addEventListener("change", function(){ var models = []; selected = d3.select(this).selectAll("option:checked").each(function() { models.push(this.value) }); currModel = models; createMapAndLegend(currModel, currTeams, minDate, maxDate); });
+            select_Model.addEventListener("change", function(){ var models = []; selected = d3.select(this).selectAll("option:checked").each(function() { models.push(this.value) }); currModel = models; createLineGraphsAndLegends(currModel, currTeams, minDate, maxDate); });
 
             var select_Teams = document.getElementById("teamDropdown")
-            select_Teams.addEventListener("change", function(){ var teams = []; selected = d3.select(this).selectAll("option:checked").each(function() { teams.push(this.value.toLowerCase()) }); currTeams = teams; createMapAndLegend(currModel, currTeams, minDate, maxDate); });
+            select_Teams.addEventListener("change", function(){ var teams = []; selected = d3.select(this).selectAll("option:checked").each(function() { teams.push(this.value.toLowerCase()) }); currTeams = teams; createLineGraphsAndLegends(currModel, currTeams, minDate, maxDate); });
 
             var select_Min_Date = document.getElementById("minDateDropdown")
-            select_Min_Date.addEventListener("change", function(){ var values = []; selected = d3.select(this).selectAll("option:checked").each(function() { values.push(this.value) }); minDate = values[0]; createMapAndLegend(currModel, currTeams, minDate, maxDate); });
+            select_Min_Date.addEventListener("change", function(){ var values = []; selected = d3.select(this).selectAll("option:checked").each(function() { values.push(this.value) }); minDate = values[0]; createLineGraphsAndLegends(currModel, currTeams, minDate, maxDate); });
 
             var select_Max_Date = document.getElementById("maxDateDropdown")
-            select_Max_Date.addEventListener("change", function(){ var values = []; selected = d3.select(this).selectAll("option:checked").each(function() { values.push(this.value) }); maxDate = values[0]; createMapAndLegend(currModel, currTeams, minDate, maxDate); });
-            // create Choropleth with default option. Call createMapAndLegend() with required arguments. 
-            createMapAndLegend(currModel, currTeams, minDate, maxDate);
+            select_Max_Date.addEventListener("change", function(){ var values = []; selected = d3.select(this).selectAll("option:checked").each(function() { values.push(this.value) }); maxDate = values[0]; createLineGraphsAndLegends(currModel, currTeams, minDate, maxDate); });
+            
+            // display line graphs with default options by calling createLineGraphsAndLegends() with default arguments. 
+            createLineGraphsAndLegends(currModel, currTeams, minDate, maxDate);
         }
 
-        // this function should create a Choropleth and legend using the world and global_count_data arguments for a selectedGame
-        // also use this function to update Choropleth and legend when a different game is selected from the dropdown
-        function createMapAndLegend(currModel, currTeams, minDate, maxDate){ 
+        // Purpose: this function displays the positive and negative line graphs + legends
+        //          using the selected model, team, minDate, and maxDate arguments
+        function createLineGraphsAndLegends(currModel, currTeams, minDate, maxDate){ 
+
+            // Upon refreshing the page, remove the error that is displayed when the selected date range is invalid
             svg.selectAll("#error_date_range").remove()
+
+            // Get a comparable version of the min and max dates for further computation
             dates = [... new Set(global_count_data.map(function(value,index) { return value['Date']; }))]
             var dateParser = d3.timeParse("%Y-%m-%d")
             var minConvertedDate = dateParser(minDate).getTime()
             var maxConvertedDate = dateParser(maxDate).getTime()
+
+            // Check if the date range is valid and display an error message if it isn't valid.
             if (minConvertedDate >= maxConvertedDate)
             {
                 selection_menu.append("text")
@@ -311,10 +319,12 @@
                   .attr('stroke', 'red')
                   .text('Error: invalid date selection. Min date must be less than max date. Code has defaulted to the maximum possible date.')
                 
+                // Set the max date to the largest possible date to avoid having a maxDate that is smaller than or equal to minDate
                 maxDate = absoluteMaxDate
                 maxConvertedDate = dateParser(maxDate).getTime()
             }
-
+            
+            // Set the minDate dropdown options to exclude the max date
             stringDates = [... new Set(global_count_data.map(function(value,index) { if (maxConvertedDate > dateParser(value['Date']).getTime()) {return value['Date']} }).filter(function(x) {return x != undefined;} ))]
             d3.select("#minDateDropdown").selectAll("option")
               .data(stringDates)
@@ -322,6 +332,7 @@
               .append("option")
               .text(function(d){return d;})
 
+            // Set the maxDate dropdown options to exclude the min date
             stringDatesWithinBounds = [... new Set(global_count_data.map(function(value,index) { if (minConvertedDate < dateParser(value['Date']).getTime()) {return value['Date']} }).filter(function(x) {return x != undefined;} ))]
             d3.select("#maxDateDropdown").selectAll("option")
               .data(stringDatesWithinBounds)
@@ -330,6 +341,7 @@
               .text(function(d){return d;})
               .property("selected", function(d) {return d === maxDate})
 
+            // Get the overall date range to later pass into the y scale object
             var date_range = [... new Set(global_count_data.map(function(value,index) { if (minConvertedDate <= dateParser(value['Date']).getTime() && maxConvertedDate >= dateParser(value['Date']).getTime()) {return value['Date']} }).filter(function(x) {return x != undefined;} ))]
             var convertedDateRange = date_range.map(function(x, index) {return dateParser(x).getTime()})
             date_scale_min = convertedDateRange[convertedDateRange.indexOf(Math.min(...convertedDateRange))]
@@ -337,13 +349,22 @@
 
             line_data = {}
 
+            // The following block of code works to build a dictionary where the key is the team name and the value is three arrays
+            //      - The first array is a list of dates
+            //      - The second array is the positive counts corresponding to the team and this list of dates
+            //      - The third array is the negative counts corresponding to the team and the list of dates
+
             // for each team
             currTeams.forEach(element => {
                 positiveCounts = []
                 negativeCounts = []
+                //TODO: GET DATE RANGE FOR THIS TEAM INSTEAD OF USING THE GENERAL DATE RANGE
+                var team_date_range = [... new Set(global_count_data.map(function(value,index) { if (minConvertedDate <= dateParser(value['Date']).getTime() && maxConvertedDate >= dateParser(value['Date']).getTime() && value['Team'] == element) {return value['Date']} }).filter(function(x) {return x != undefined;} ))]
+                var convertedTeamDateRange = team_date_range.map(function(x, index) {return dateParser(x).getTime()})
                 if (currModel == "rf") //random forest
                 {
-                    date_range.forEach(day => {
+                    // for each day, push the positive and negative counts to their respective lists
+                    team_date_range.forEach(day => {
                         positiveCounts.push(...global_count_data.map(function(value,index) { if (value['Team'] == element && value['Date'] == day){return value['RF Positive']; }}).filter(function(x) {return x != undefined;} ))
                         negativeCounts.push(...global_count_data.map(function(value,index) { if (value['Team'] == element && value['Date'] == day){return value['RF Negative']; }}).filter(function(x) {return x != undefined;} ))
                     });
@@ -351,32 +372,36 @@
                 }
                 else if (currModel == "nb") //naive bayes
                 {
-                    date_range.forEach(day => {
+                    team_date_range.forEach(day => {
                         positiveCounts.push(...global_count_data.map(function(value,index) { if (value['Team'] == element && value['Date'] == day){return value['NB Positive']; }}).filter(function(x) {return x != undefined;} ))
                         negativeCounts.push(...global_count_data.map(function(value,index) { if (value['Team'] == element && value['Date'] == day){return value['NB Negative']; }}).filter(function(x) {return x != undefined;} ))
                     });
                 }
                 else //logistic regression
                 {
-                    date_range.forEach(day => {
+                    team_date_range.forEach(day => {
                         positiveCounts.push(...global_count_data.map(function(value,index) { if (value['Team'] == element && value['Date'] == day){return value['LR Positive']; }}).filter(function(x) {return x != undefined;} ))
                         negativeCounts.push(...global_count_data.map(function(value,index) { if (value['Team'] == element && value['Date'] == day){return value['LR Negative']; }}).filter(function(x) {return x != undefined;} ))
                     });
                 }
-                line_data[element] = [convertedDateRange, positiveCounts, negativeCounts]
+                line_data[element] = [convertedTeamDateRange, positiveCounts, negativeCounts]
             });
 
-
-            // create scales x & y for X and Y axis and set their ranges
+            // create scales x & y for X and Y axis and set their domains and ranges
             var xscale = d3.scaleLinear().domain([date_scale_min, date_scale_max]).range([0, width - 350])
             var yscale = d3.scaleLinear().domain([min_positive_tweet_count, max_positive_tweet_count]).range([450, 0]).nice()
 
+            // define the line function to later call on when displaying the lines
             const line = d3.line()
                     .x(function(d) { return xscale(d[0]); })
                     .y(function(d) { return yscale(d[1]); });
 
+            //////////////////////////////// POSITIVE COUNTS GRAPH \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+
             // reset svg g elements and create new g element for graphs
             svg.selectAll("#positive").remove()
+
+            // create g element for positive counts graph
             var positive_graph = svg.append("g")
                 .attr('id', 'positive')
                 .attr('transform', `translate(200, 20)`)
@@ -403,7 +428,7 @@
 
             // Add the text label for X Axis
             positive_graph.append("text")
-                .attr("transform", "translate(490, 500)")
+                .attr("transform", "translate(490, 495)")
                 .attr("id", "x-axis label")
                 .attr('stroke', 'black')
                 .attr("fill", "black")
@@ -426,13 +451,14 @@
                 .attr("fill", "black")
                 .style("font-size", "14px")
                 .text('Positive Tweet Counts')
-                // .attr("font-weight", "bold")
 
-            col_num = 0
+            // create g element for graph body and process data to later pass into the line() function
             var positive_graph_body = positive_graph.append('g')
                     .attr('id', 'lines-a');
             positive_line_data = processData(line_data, true, currModel, date_range)
 
+            // add lines to graph body and set a different color for each line
+            col_num = 0
             positive_graph_body.selectAll("lines")
                 .data(positive_line_data)
                 .enter().append("path")
@@ -441,6 +467,7 @@
                 .attr("stroke-width", 1.5)
                 .attr("d", function(d){return line(d)});
 
+            // add circles over each data point and then add tooltip functionality for each of the data point circles
             col_num = 0
             positive_graph_body.call(tip);
             positive_line_data.forEach(element => {
@@ -456,6 +483,7 @@
                 col_num+=1
             });
 
+            // reset legend each time the graph refreshes
             svg.selectAll("#positive_legend").remove()
             var positive_legend = svg.append("g")
                 .attr('id', 'positive_legend')
@@ -463,6 +491,7 @@
                 .attr('width', width - 160)
                 .attr('height', height - 50);
 
+            // add circles to legend for each team that is displayed on graph, and use the same color as the corresponding line
             col_num = 0
             positive_legend.selectAll("circle")
                 .data(currTeams)
@@ -473,7 +502,7 @@
                 .attr("cy", function(d, i) {return i * 17})
                 .attr("r", 6)
 
-            col_num = 0
+            // add team name next to each circle in the legend
             positive_legend.selectAll("text")
                 .data(currTeams)
                 .enter().append("text")
@@ -487,6 +516,8 @@
 
 
             //////////////////////////////// NEGATIVE COUNTS GRAPH \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+
+            // reset svg g elements and create new g element for graph
             svg.selectAll("#negative").remove()
             var negative_graph = svg.append("g")
                 .attr('id', 'negative')
@@ -522,7 +553,9 @@
                 .style("font-family", "Times")
                 .text('Date (YYYY-MM-DD)')
 
+            // reset yscale domain according to the negative min and max tweet counts
             var yscale = d3.scaleLinear().domain([min_negative_tweet_count, max_negative_tweet_count]).range([450, 0]).nice()
+
             // Add the Y Axis
             yaxisglyph_2 = negative_graph.append("g")
                             .attr("id", "y-axis-b");
@@ -539,11 +572,13 @@
                 .style("font-size", "14px")
                 .text('Negative Tweet Counts')
 
-            col_num = 0
+            // create g element for graph body and process data to later pass into the line() function
             var negative_graph_body = negative_graph.append('g')
                     .attr('id', 'lines-a');
             negative_line_data = processData(line_data, false, currModel, date_range)
 
+            // add lines to graph body and set a different color for each line
+            col_num = 0
             negative_graph_body.selectAll("lines")
                 .data(negative_line_data)
                 .enter().append("path")
@@ -552,6 +587,7 @@
                 .attr("stroke-width", 1.5)
                 .attr("d", function(d){return line(d)})
 
+            // add circles over each data point and then add tooltip functionality for each of the data point circles
             negative_graph_body.call(tip)
             col_num = 0
             negative_line_data.forEach(element => {
@@ -567,6 +603,7 @@
                 col_num+=1
             });
 
+            // reset legend each time the graph refreshes
             svg.selectAll("#negative_legend").remove()
             var negative_legend = svg.append("g")
                 .attr('id', 'negative_legend')
@@ -574,6 +611,7 @@
                 .attr('width', width - 160)
                 .attr('height', height - 50);
 
+            // add circles to legend for each team that is displayed on graph, and use the same color as the corresponding line
             col_num = 0
             negative_legend.selectAll("circle")
                 .data(currTeams)
@@ -584,7 +622,7 @@
                 .attr("cy", function(d, i) {return i * 17})
                 .attr("r", 6)
 
-            col_num = 0
+            // add team name next to each circle in the legend
             negative_legend.selectAll("text")
                 .data(currTeams)
                 .enter().append("text")
