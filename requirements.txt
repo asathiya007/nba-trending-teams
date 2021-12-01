@@ -9,3 +9,5 @@ urllib3==1.26.7
 tweet-preprocessor==0.6.0
 pandas
 numpy
+nltk
+sklearn

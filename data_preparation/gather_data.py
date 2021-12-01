@@ -24,7 +24,7 @@ for team in all_teams:
     expansions = 'author_id'
     user_fields = 'location'
     #tweet.fields=created_at
-    # end_time = "2021-11-13T23:46Zs" end_time = end_time,
+    # end_time = "2021-11-22T15:00:s00Z" #end_time = end_time,
     tweets = client.search_recent_tweets(query=query, max_results=max_results, 
         expansions=expansions, user_fields=user_fields, tweet_fields='created_at')
     # print(tweets)
