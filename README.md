@@ -3,7 +3,7 @@ Project repository for Georgia Tech CS 6242 course project. This project provide
 
 There are three main components to this project: the data/machine learning component, the line graph visualization, and the bar graph visualization. 
 
-# NBA Trending Teams (Data and Machine Learning)
+# Data and Machine Learning
 
 ## Overview
 The data and machine learning component of the project contains the code for collecting data, processing the data, training machine learning models (logistic regression classifier, multinomial naive Bayes classifier, and random forest classifier), and using those models to label the data for the visualizations. 
