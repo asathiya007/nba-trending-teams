@@ -1,4 +1,3 @@
-from re import L
 import nltk
 from nltk.corpus import stopwords
 from nltk.stem.snowball import SnowballStemmer
