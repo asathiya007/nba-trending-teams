@@ -11,4 +11,3 @@ ml_resources/
 sentiment140dataset.csv
 *.pkl
 *.joblib 
-logs.txt
