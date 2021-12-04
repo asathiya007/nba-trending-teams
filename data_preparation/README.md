@@ -5,7 +5,7 @@ This directory contains the data collection, data processing, and machine learni
 
 ## How To Run Locally
 1. If you do not have Python3 installed on your machine, please install it from here: `https://www.python.org/downloads/`. 
-2. Create a Python3 virtual environment (which will use Python 3.8.5) and install the dependencies in the `requirements.txt` file using `pip` with the command: `pip install -r requirements.txt`. 
+2. Create a Python3 virtual environment (which will use Python 3.8.5) and install the dependencies in the `../requirements.txt` file using `pip` with the command: `pip install -r ../requirements.txt`. 
 3. See the Data Collection, Data Processing and Machine Learning, and Data Labeling sections for using the resources in this directory. 
 
 ### Data Collection 
