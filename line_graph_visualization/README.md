@@ -1,4 +1,4 @@
-# NBA Team Sentiment Visualizer (Tweet-based line graph)
+# NBA Trending Teams (Tweet-Based Line Graph Visualization)
 
 ## Overview
 This visualization shows an overall sentiment trend for each of the NBA teams over a specified period of time.
@@ -8,7 +8,6 @@ Our trained models were used to classify the sentiment for each of the Tweets as
 The nature of this data led to two graphs being displayed on the HTML page: a positive Tweet counts vs. date graph and a negative Tweet counts vs. date graph.
 
 ## How To Run Locally
-
 1. Clone this repository to your local machine.
 2. Navigate to the `line_graph_visualization` directory within the cloned repo through your command-line interface.
 3. Run the following command to start up a local server:
