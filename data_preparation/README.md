@@ -19,5 +19,5 @@ To retrain the machine learning models, first unzip the `sentiment140dataset.csv
 A series of experiments have been conducted on the data processing and machine learning components of this project. The code for these experiments is in the `./model/experiments.py` file, and a sample of the experiment results are in the `./model/experiment_results/sample/` directory. The current experiments measure the efficacy and speed of data processing and model fitting, the time for loading saved resources, and the performance of machine learning models on NBA tweets. To rerun the experiments, enter the `./model/` directory and run the `experiments.py` file with the command `python3 experiments.py`. 
 
 ### Data Labeling 
-To relabel all collected NBA tweets, enter the `./model/` directory and run the `classify_data.py` file with the command `python3 classify_data.py`. Move the output file `classifiedNBAData.csv` outside the model directory so the visualizations can access and use it. 
+To relabel all collected NBA tweets, enter the `./model/` directory and run the `classify_data.py` file with the command `python3 classify_data.py`. Move the output file `classifiedNBAData.csv` outside the model directory (but still in the `./` directory) so the visualizations can access and use it. 
 
