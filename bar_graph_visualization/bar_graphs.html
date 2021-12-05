@@ -34,6 +34,12 @@
       transition: all .2s;
     }
 
+    .box {
+        inline-size: 250px;
+        overflow-wrap: break-word;
+    }
+    
+
   </style>
 
 <body>
@@ -111,17 +117,21 @@
     function draw(selector) {
         Promise.all([
             // enter code to read files
-            d3.csv('tweet_counts_bar.csv')
+            d3.csv('tweet_counts_bar.csv'),
+            d3.csv('rf_positive_tweets.csv'),
+            d3.csv('rf_negative_tweets.csv')
             
         ]).then(function(values) {
             tweets = values[0];
+            samplePositive = values[1]
+            sampleNegative = values[2]
             //Only want to populate this dropdown ONCE!
             if (teamListFilled == 0) {
                 populateTeamList(tweets);
                 teamListFilled = 1;
             }
             
-            populateBars(tweets);
+            populateBars(tweets, samplePositive, sampleNegative);
             
         });
 
@@ -164,7 +174,7 @@
         .attr('transform', `translate(0, ${graphHeight})`);
         const gYAxis = graph.append('g')
 
-        function populateBars(gameData) {
+        function populateBars(gameData, samplePositive, sampleNegative) {
 
             const selectElement = document.getElementById('teamsDropdown');
             curTeam = "";
@@ -176,6 +186,27 @@
                 }
             }
 
+
+            //get sample tweet
+            curSamplePositive = ""
+            curSampleNegative = ""
+
+            for (i = 0; i < samplePositive.length; i++) {
+                if (samplePositive[i].Team == selectElement.value) {
+                    curSamplePositive = samplePositive[i].Tweet;
+                }
+            }
+
+            for (i = 0; i < sampleNegative.length; i++) {
+                if (sampleNegative[i].Team == selectElement.value) {
+                    curSampleNegative = sampleNegative[i].Tweet;
+                }
+            }
+
+            console.log("Positive Tweet Example")
+            console.log(curSamplePositive)
+            console.log("Negative Tweet Example")
+            console.log(curSampleNegative)
 
             max = 0;
 
@@ -214,7 +245,8 @@
 
                 
             //Make data for drawing the rectangles   
-            var rectData = [{x: 'Positive', y: positiveCount}, {x: 'Negative', y: negativeCount}];
+            //Will also add the information for postive sampletweet and negative
+            var rectData = [{x: 'Positive', y: positiveCount, tweet: curSamplePositive}, {x: 'Negative', y: negativeCount, tweet: curSampleNegative}];
 
        
             const y = d3.scaleLinear()
@@ -254,7 +286,7 @@
                     .on('mouseover', function (d, i) {
                     tooltip
                         .html(
-                        `<div>Tweets: ${i.y}</div><div>Sentiment: ${i.x}</div>`
+                        `<div>Tweets: ${i.y}</div><div>Sentiment: ${i.x}</div><div class="box">Sample Tweet: ${i.tweet}</div>`
                         )
                         .style('visibility', 'visible');
                     d3.select(this).transition().attr('fill', hoverColor);
