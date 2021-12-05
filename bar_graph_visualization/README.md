@@ -25,5 +25,5 @@ For the selected team, information is displayed for the following three classifi
 - Team Select
   - This option is where you can select the teams you specifically want to visualize on the graphs. 
 - Interactive Tool Tip
-	- Hover your mouse over a bar within a graph to view the corresponding sentiments and number of tweets for this category.
+	- Hover your mouse over a bar within a graph to view the corresponding sentiments, number of tweets, and sample tweet for this category.
 
