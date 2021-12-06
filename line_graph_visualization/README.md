@@ -7,6 +7,8 @@ Our trained models were used to classify the sentiment for each of the Tweets as
 
 The nature of this data led to two graphs being displayed on the HTML page: a positive Tweet counts vs. date graph and a negative Tweet counts vs. date graph.
 
+Note: the line graph visualization data is a processed version of the model output data. The `data_manipulation.ipynb` file contains logic for getting daily Tweet counts for each team and getting sample Tweets for each team on each day.
+
 ## How To Run Locally
 1. Clone this repository to your local machine.
 2. Navigate to the `line_graph_visualization` directory within the cloned repo through your command-line interface.
